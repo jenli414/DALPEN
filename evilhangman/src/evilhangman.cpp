@@ -1,4 +1,3 @@
-//hej
 /*  Laboration 2
  *  jenli414 och sabse455
  */
