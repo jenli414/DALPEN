@@ -13,7 +13,7 @@
 class Tour {
 public:
 
-    Tour();
+    Tour(Point a, Point b, Point c, Point d);
     ~Tour();
     void show();
     void draw(QGraphicsScene* scene);
@@ -23,7 +23,7 @@ public:
     void insertSmallest(Point p);
 
 private:
-
+    Node* m_firstNode;
 };
 
 #endif // TOUR_H

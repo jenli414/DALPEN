@@ -9,9 +9,15 @@
 #include "Node.h"
 #include "Point.h"
 
-Tour::Tour()
+Tour::Tour(Point a, Point b, Point c, Point d)
 {
-    // TODO: write this member
+    Node* fourthNode = new Node(d);
+    Node* thirdNode = new Node(c, fourthNode);
+    Node* secondNode = new Node(b,thirdNode);
+    Node* firstNode = new Node(a, secondNode);
+    fourthNode->next = firstNode;
+
+    m_firstNode = firstNode;
 }
 
 Tour::~Tour()
@@ -21,22 +27,59 @@ Tour::~Tour()
 
 void Tour::show()
 {
-    // TODO: write this member
+    if (m_firstNode != nullptr) {
+        Node* currNode = m_firstNode->next;
+        cout << m_firstNode->point.toString() << endl;
+        while (currNode != m_firstNode) {
+            cout << currNode->point.toString() << endl;
+            currNode = currNode->next;
+        }
+    }
 }
 
-void Tour::draw(QGraphicsScene *scene)
+void Tour::draw(QGraphicsScene* scene)
 {
-    // TODO: write this member
+    if (m_firstNode != nullptr) {
+        Node* currNode = m_firstNode->next;
+        m_firstNode->point.drawTo(currNode->point, scene);
+        while (currNode != m_firstNode) {
+            Node* nextNode = currNode->next;
+            currNode->point.drawTo(nextNode->point, scene);
+            currNode = currNode->next;
+        }
+    }
 }
 
 int Tour::size()
 {
-    // TODO: write this member
+    if (m_firstNode == nullptr) {
+        return 0;
+    } else {
+        int size = 1;
+        Node* currNode = m_firstNode->next;
+        while (currNode != m_firstNode) {
+            size++;
+            currNode = currNode->next;
+        }
+        return size;
+    }
 }
 
 double Tour::distance()
 {
-    // TODO: write this member
+    if (m_firstNode == nullptr) {
+        return 0;
+    } else {
+        double distance = 0;
+        Node* currNode = m_firstNode->next;
+        distance += m_firstNode->point.distanceTo(currNode->point);
+        while (currNode != m_firstNode) {
+            Node* nextNode = currNode->next;
+            distance += currNode->point.distanceTo(nextNode->point);
+            currNode = currNode->next;
+        }
+        return distance;
+    }
 }
 
 void Tour::insertNearest(Point p)

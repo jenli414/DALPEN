@@ -23,13 +23,14 @@ public:
     void lower(int x, int y);               // Puts the tile in index x,y at the bottom, if none, do nothing.
     void raise(int x, int y);               // Puts the tile in index x,y at the top, if none, do nothing.
     void remove(int x, int y);              // Remove the (top) tile in index x,y. Re-orders tiles if needed.
+    Tile removeTile(const int& index);      // Remove the tile at given index
     void removeAll(int x, int y);           // Removes all tiles in index x,y. Re-orders tiles if needed.
     bool isEmpty();
 
 private:
     int m_capacity = 10;
     int m_occupied = 0;
-    Tile *m_tileList = new Tile[m_capacity];
+    Tile* m_tileList = new Tile[m_capacity];
 };
 
 #endif // TILELIST_H
