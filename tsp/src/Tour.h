@@ -1,8 +1,6 @@
-// This is the .h file you will edit and turn in.
-// We have provided a skeleton for you,
-// but you must finish it as described in the spec.
-// Also remove these comments here and add your own, as well as on the members.
-// TODO: remove this comment header
+/*
+ * jenli414 och sabse455
+ */
 
 #ifndef TOUR_H
 #define TOUR_H
@@ -13,17 +11,53 @@
 class Tour {
 public:
 
-    Tour(Point a, Point b, Point c, Point d);
+    /*
+     * Constructs an empty tour
+     */
+    Tour();
+
+    /*
+     * Frees the memory that was allocated internally by the tour
+     */
     ~Tour();
+
+    /*
+     * Prints the coordinates of each node's point, format: (x, y)
+     */
     void show();
+
+    /*
+     * Draws the tour to given scene by drawing lines between each node's
+     * point and the point the node points to.
+     */
     void draw(QGraphicsScene* scene);
+
+    /*
+     * Returns the number of nodes in the tour.
+     */
     int size();
+
+    /*
+     * Returns the total distance of the tour.
+     */
     double distance();
+
+    /*
+     * Creates a new node with the given point and inserts it after the
+     * node with the point that is closest to the given point.
+     */
     void insertNearest(Point p);
+
+
+    /*
+     * Creates a new node with the given point and inserts it after the
+     * node with the point which in relation to the given point results
+     * in the least distance added to the tour.
+     */
     void insertSmallest(Point p);
 
 private:
-    Node* m_firstNode;
+    Node* m_firstNode = nullptr; // Pointer to the front node in the Tour
 };
 
 #endif // TOUR_H

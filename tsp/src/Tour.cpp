@@ -1,29 +1,23 @@
-// This is the .cpp file you will edit and turn in.
-// We have provided a skeleton for you,
-// but you must finish it as described in the spec.
-// Also remove these comments here and add your own.
-// TODO: remove this comment header
+/*
+ * jenli414 och sabse455
+ */
 
 #include <iostream>
 #include "Tour.h"
 #include "Node.h"
 #include "Point.h"
 
-Tour::Tour(Point a, Point b, Point c, Point d)
-{
-    Node* fourthNode = new Node(d);
-    Node* thirdNode = new Node(c, fourthNode);
-    Node* secondNode = new Node(b,thirdNode);
-    Node* firstNode = new Node(a, secondNode);
-    fourthNode->next = firstNode;
-
-    m_firstNode = firstNode;
-}
+Tour::Tour() {}
 
 Tour::~Tour()
 {
-    // TODO: write this member
+    while (m_firstNode != nullptr) {
+        Node* tmp = m_firstNode;
+        m_firstNode = m_firstNode->next;
+        delete tmp;
+    }
 }
+
 
 void Tour::show()
 {
@@ -34,21 +28,26 @@ void Tour::show()
             cout << currNode->point.toString() << endl;
             currNode = currNode->next;
         }
+        cout << endl;
     }
 }
+
 
 void Tour::draw(QGraphicsScene* scene)
 {
     if (m_firstNode != nullptr) {
+        m_firstNode->point.draw(scene);
         Node* currNode = m_firstNode->next;
         m_firstNode->point.drawTo(currNode->point, scene);
         while (currNode != m_firstNode) {
+            currNode->point.draw(scene);
             Node* nextNode = currNode->next;
             currNode->point.drawTo(nextNode->point, scene);
             currNode = currNode->next;
         }
     }
 }
+
 
 int Tour::size()
 {
@@ -64,6 +63,7 @@ int Tour::size()
         return size;
     }
 }
+
 
 double Tour::distance()
 {
@@ -82,12 +82,60 @@ double Tour::distance()
     }
 }
 
+
 void Tour::insertNearest(Point p)
 {
-    // TODO: write this member
+    Node* newNode = new Node(p);
+    if (m_firstNode == nullptr) {
+        m_firstNode = newNode;
+        newNode->next = newNode;
+    }
+    else {
+        Node* nearestNode = m_firstNode;
+        double shortestDistance = m_firstNode->point.distanceTo(p);
+        Node* currNode = m_firstNode->next;
+        while (currNode != m_firstNode) {
+            double currDistance = currNode->point.distanceTo(p);
+            if (currDistance < shortestDistance) {
+                   shortestDistance = currDistance;
+                   nearestNode = currNode;
+            }
+            currNode = currNode->next;
+        }
+        newNode->next = nearestNode->next;
+        nearestNode->next = newNode;
+    }
 }
+
 
 void Tour::insertSmallest(Point p)
 {
-    // TODO: write this member
+    Node* newNode = new Node(p);
+    if (m_firstNode == nullptr) {
+        m_firstNode = newNode;
+        newNode->next = newNode;
+    }
+    else {
+        Node* bestNode = m_firstNode;
+        Node* nextNode = m_firstNode->next;
+        double originalDistance = m_firstNode->point.distanceTo(nextNode->point);
+        double newDistance = m_firstNode->point.distanceTo(p) +
+                p.distanceTo(nextNode->point);
+        double leastAddedDistance = newDistance - originalDistance;
+        Node* currNode = nextNode;
+        while (currNode != m_firstNode && leastAddedDistance != 0) {
+            nextNode = currNode->next;
+            originalDistance = currNode->point.distanceTo(nextNode->point);
+            newDistance = currNode->point.distanceTo(p) +
+                            p.distanceTo(nextNode->point);
+            double addedDistance = newDistance - originalDistance;
+            if (addedDistance < leastAddedDistance) {
+                leastAddedDistance = addedDistance;
+                bestNode = currNode;
+            }
+            currNode = currNode->next;
+        }
+        newNode->next = bestNode->next;
+        bestNode->next = newNode;
+    }
 }

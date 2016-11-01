@@ -37,12 +37,13 @@ int main(int argc, char *argv[]) {
     view->show();
 
     // run insertion heuristic
-    /*Tour tour;
+    Tour tour;
     double x;
     double y;
     while (input >> x >> y) {
         Point p(x, y);
-        tour.insertNearest(p);
+        //tour.insertNearest(p);
+        tour.insertSmallest(p);
         //uncomment the 4 lines below to animate
         //tour.draw(scene);
         //std::chrono::milliseconds dura(50);
@@ -59,15 +60,6 @@ int main(int argc, char *argv[]) {
 
     // draw tour
     tour.draw(scene);
-*/
-    //SquareTour
-
-    Tour* squareTour = new Tour(*new Point(100.0,100.0), *new Point(500.0,100.0),
-                               *new Point(500.0,500.0), *new Point(100.0,500.0));
-    squareTour->show();
-    cout << squareTour->size() << endl;
-    cout << squareTour->distance() << endl;
-    squareTour->draw(scene);
 
     return a.exec(); // start Qt event loop
 }

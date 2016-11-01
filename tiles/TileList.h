@@ -1,8 +1,6 @@
-// This is the .h file you will edit and turn in.
-// We have provided a skeleton for you,
-// but you must finish it as described in the spec.
-// Also remove these comments here and add your own, as well as on the members.
-// TODO: remove this comment header
+/*
+ * jenli414 och sabse455
+ */
 
 #ifndef TILELIST_H
 #define TILELIST_H
@@ -14,23 +12,66 @@
 class TileList {
 
 public:
-    TileList();                             // Constructs an empty list with a capacity of 10 tiles.
-    ~TileList();                            // Destructor, frees all dynamically allocated memory used.
-    void addTile(Tile tile);                // Adds a tile to itself, on top.
-    void checkExpand();                     // Checks if we need to expand the array
-    void drawAll(QGraphicsScene* scene);    // Draws its own tiles, bottom to top, by calling each tile's draw-function.
-    int indexOfTopTile(int x, int y);       // Index of the top tile, if none, return -1.
-    void lower(int x, int y);               // Puts the tile in index x,y at the bottom, if none, do nothing.
-    void raise(int x, int y);               // Puts the tile in index x,y at the top, if none, do nothing.
-    void remove(int x, int y);              // Remove the (top) tile in index x,y. Re-orders tiles if needed.
-    Tile removeTile(const int& index);      // Remove the tile at given index
-    void removeAll(int x, int y);           // Removes all tiles in index x,y. Re-orders tiles if needed.
-    bool isEmpty();
+    /*
+     * Constructs an empty list with a capaciry of 10 tiles.
+     */
+    TileList();
+
+    /*
+     * Deconstructor that frees all dynamically allocated memory used.
+     */
+    ~TileList();
+
+    /*
+     * Adds a tile to the back of the tile list.
+     */
+    void addTile(Tile tile);
+
+    /*
+     * Checks if we need to expand the array and does so if needed.
+     */
+    void checkExpand();
+
+    /*
+     * Draws all tiles by calling each tile's draw-function.
+     */
+    void drawAll(QGraphicsScene* scene);
+
+    /*
+     * Returns the index of the top tile that covers the coordinates (x,y),
+     * if none, returns -1.
+     */
+    int indexOfTopTile(int x, int y);
+
+    /*
+     * Puts the top tile that covers (x,y) at the bottom, if none, do nothing.
+     */
+    void lower(int x, int y);
+
+    /*
+     * Puts the top tile that covers (x,y) on top, if none, do nothing.
+     */
+    void raise(int x, int y);
+
+    /*
+     * Remove the top tile that covers (x,y), if none, do nothing.
+     */
+    void remove(int x, int y);
+
+    /*
+     * Removes and returns the tile at given index in the tile list.
+     */
+    Tile removeTile(const int& index);
+
+    /*
+     * Removes all tiles that cover (x,y), if none, do nothing.
+     */
+    void removeAll(int x, int y);
 
 private:
-    int m_capacity = 10;
-    int m_occupied = 0;
-    Tile* m_tileList = new Tile[m_capacity];
+    int m_capacity = 10;                        // Tile list maximum capacity.
+    int m_occupied = 0;                         // Number of tiles in tile list.
+    Tile* m_tileList = new Tile[m_capacity];    // Array of tiles.
 };
 
 #endif // TILELIST_H

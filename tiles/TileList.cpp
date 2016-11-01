@@ -1,8 +1,6 @@
-// This is the .cpp file you will edit and turn in.
-// We have provided a skeleton for you,
-// but you must finish it as described in the spec.
-// Also remove these comments here and add your own.
-// TODO: remove this comment header
+/*
+ * jenli414 och sabse455
+ */
 
 #include "TileList.h"
 
@@ -101,9 +99,4 @@ void TileList::removeAll(int x, int y)
         remove(x,y);
         index = indexOfTopTile(x,y);
     }
-}
-
-bool TileList::isEmpty()
-{
-    return m_occupied == 0;
 }
