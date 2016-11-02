@@ -11,8 +11,16 @@
 
 class Robot : public Unit {
 public:
+
+    /*
+     * Contructor
+     */
     Robot();
-    Robot(Unit c);
+
+    /*
+     * Constructor that takes a Unit.
+     */
+    Robot(const Unit& c);
 
     /*
      * Returns whether a robot is junk.
@@ -22,7 +30,7 @@ public:
     /*
     * Draws this robot onto the given QGraphicsScene.
     */
-    virtual void draw(QGraphicsScene* scene) const;
+    void draw(QGraphicsScene* scene) const override;
 
 };
 

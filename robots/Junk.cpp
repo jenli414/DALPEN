@@ -11,7 +11,7 @@ Junk::Junk() : Robot() {
 }
 
 
-Junk::Junk(Unit c) : Robot(c) {
+Junk::Junk(const Unit& c) : Robot(c) {
 
 }
 

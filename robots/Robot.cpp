@@ -10,7 +10,7 @@ Robot::Robot() : Unit() {
 
 }
 
-Robot::Robot(Unit c) : Unit(c) {
+Robot::Robot(const Unit& c) : Unit(c) {
 
 }
 

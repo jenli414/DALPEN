@@ -9,13 +9,18 @@
 
 Tour::Tour() {}
 
+
 Tour::~Tour()
 {
-    while (m_firstNode != nullptr) {
-        Node* tmp = m_firstNode;
-        m_firstNode = m_firstNode->next;
-        delete tmp;
+    int tourSize = size();
+    Node* currNode = m_firstNode;
+    Node* nextNode = m_firstNode->next;
+    for (int i = 0; i < tourSize - 1; i++) {
+        delete currNode;
+        currNode = nextNode;
+        nextNode = currNode->next;
     }
+    delete currNode;
 }
 
 

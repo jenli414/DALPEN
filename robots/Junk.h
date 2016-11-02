@@ -11,19 +11,21 @@
 
 class Junk : public Robot {
 public:
+
     Junk();
-    Junk(Unit c);
 
-    void moveTowards(const Unit& u);
+    Junk(const Unit& c);
 
-    bool attacks(const Unit& u) const;
+    void moveTowards(const Unit& u) override;
 
-    bool isJunk() const;
+    bool attacks(const Unit& u) const override;
+
+    bool isJunk() const override;
 
     /*
     * Draws this junk onto the given QGraphicsScene.
     */
-    void draw(QGraphicsScene* scene) const;
+    void draw(QGraphicsScene* scene) const override;
 };
 
 #endif // JUNK_H

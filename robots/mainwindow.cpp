@@ -190,6 +190,7 @@ void MainWindow::resetGame() {
     score = 0;
     level = 1;
     numberOfRobots = MIN_ROBOTS;
+    //gameState = GameState(numberOfRobots);
     gameState = GameState(numberOfRobots);
     gameState.draw(scene);
     displayScore();

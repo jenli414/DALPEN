@@ -14,9 +14,28 @@
  */
 class Unit {
 public:
+
+    /*
+     * Constructor
+     */
     Unit();
+
+
+    /*
+     * Constructor
+     */
     Unit(const Unit& u);
+
+
+    /*
+     * Constructor
+     */
     Unit(const Point& p);
+
+    /*
+     * Destructor
+     */
+    virtual ~Unit();
 
     /*
     * Return Point representation of Unit
