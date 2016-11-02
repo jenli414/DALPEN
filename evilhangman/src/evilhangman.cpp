@@ -4,10 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <queue>
-#include <stack>
 #include <set>
 #include <limits>
+#include <map>
 
 using namespace std;
 
@@ -21,17 +20,14 @@ void askForWordLength(int& iWordLength, const unsigned int& shortestWord,
 void askForNumOfGuesses(int& iNumOfGuesses);
 bool isAllNumbers(const string& input);
 void askIfShowNumOfPossibleWords(bool& showNumOfPossibleWords);
-void setInitialLargestWordFamily(const set<string>& dictionary,
+void setInitialRemainingWords(const set<string>& dictionary,
                                  const unsigned int& uWordLength,
-                                 stack<string>& largestWordFamily);
+                                 set<string>& remainingWords);
 void askForGuess(set<char>& alreadyGuessedLetters, char& guess);
-void findLargestWordFamily(const unsigned int& uWordLength,
-                           const set<char>& alreadyGuessedLetters,
-                           const char& guess, stack<string>& largestWordFamily);
-void checkBranches(queue<stack<string>>& wordFamilies, stack<string>& equalsGuess,
-                   stack<string>& doesntEqualGuess);
-void keepLargestWordFamily(queue<stack<string>>& wordFamilies);
+void findLargestWordFamily(set<string>& remainingWords, const char& guess,
+                           const int& wordLength);
 bool wordComplete(set<char>& alreadyGuessedLetters, string& chosenWord);
+void setNumOfGuesses(unsigned int& numOfGuesses, const char& guess, const string& sampleWord);
 void printGuessStatus(const unsigned int& uNumOfGuesses,
                       const set<char>& alreadyGuessedLetters,
                       const string& currentResult);
@@ -40,8 +36,10 @@ void printEndMessage(const bool& playerWon, const string& chosenWord);
 void askForUserAction(char& userAction);
 
 
-/* The main method reads the dictionary and starts a game of hangman.
- * Afterwards it asks if the user wants to play again. */
+/*
+ * The main method reads the dictionary and starts a game of hangman.
+ * Afterwards it asks if the user wants to play again.
+ */
 int main() {
     set<string> dictionary;
     readDictionary(dictionary);
@@ -63,7 +61,9 @@ int main() {
     return 0;
 }
 
-// Reads the dictionary.txt file and puts the words in a set.
+/*
+ * Reads the dictionary.txt file and puts the words in a set.
+ */
 void readDictionary(set<string>& dictionary) {
     ifstream input;
     input.open("dictionary.txt");
@@ -74,8 +74,10 @@ void readDictionary(set<string>& dictionary) {
     input.close();
 }
 
-/* Sets shortestWord and longestWord to the length of the shortest and longest
- * word in the dictionary.*/
+/*
+ * Sets shortestWord and longestWord to the length of the shortest and longest
+ * word in the dictionary.
+ */
 void getWordLengthLimits(const set<string>& dictionary, unsigned int& shortestWord,
                          unsigned int& longestWord) {
     string word;
@@ -93,7 +95,9 @@ void getWordLengthLimits(const set<string>& dictionary, unsigned int& shortestWo
     }
 }
 
-// Starts and plays a game of hangman.
+/*
+ * Starts and plays a game of hangman.
+ */
 void startGame(const set<string>& dictionary, const unsigned int& shortestWord,
                const unsigned int& longestWord) {
     int iWordLength, iNumOfGuesses = 0;
@@ -103,36 +107,36 @@ void startGame(const set<string>& dictionary, const unsigned int& shortestWord,
     unsigned int uNumOfGuesses = iNumOfGuesses;
     bool showNumOfPossibleWords;
     askIfShowNumOfPossibleWords(showNumOfPossibleWords);
-    stack<string> largestWordFamily;
-    setInitialLargestWordFamily(dictionary, uWordLength, largestWordFamily);
+    set<string> remainingWords;
+    setInitialRemainingWords(dictionary, uWordLength, remainingWords);
     char guess;
     set<char> alreadyGuessedLetters;
     bool playerWon = false;
+    set<string>::const_iterator wordIt = remainingWords.begin();
+    string sampleWord= *wordIt;
     while (!playerWon && uNumOfGuesses > 0) {
-        askForGuess(alreadyGuessedLetters, guess);
-        --uNumOfGuesses;
-        if (largestWordFamily.size() == 1) {
-            alreadyGuessedLetters.insert(guess);
-            playerWon = wordComplete(alreadyGuessedLetters, largestWordFamily.top());
-        } else {
-            findLargestWordFamily(uWordLength, alreadyGuessedLetters, guess,
-                                   largestWordFamily);
-            alreadyGuessedLetters.insert(guess);
-            if (largestWordFamily.size() == 1) {
-                playerWon = wordComplete(alreadyGuessedLetters, largestWordFamily.top());
-            }
+        askForGuess(alreadyGuessedLetters, guess);       
+        if (remainingWords.size() != 1) {
+            findLargestWordFamily(remainingWords, guess, uWordLength);
+            wordIt = remainingWords.begin();
+            sampleWord = *wordIt;
         }
+        alreadyGuessedLetters.insert(guess);
+        playerWon = wordComplete(alreadyGuessedLetters, sampleWord);
+        setNumOfGuesses(uNumOfGuesses, guess, sampleWord);
         printGuessStatus(uNumOfGuesses, alreadyGuessedLetters,
-                         largestWordFamily.top());
+                         sampleWord);
         if (showNumOfPossibleWords) {
-            printNumOfPossibleWords(largestWordFamily.size());
+            printNumOfPossibleWords(remainingWords.size());
         }
     }
-    printEndMessage(playerWon, largestWordFamily.top());
+    printEndMessage(playerWon, sampleWord);
 }
 
-/* Asks what wordlength the user wants. Has to be an integer between
- * the shortest and longest word in the dictionary.*/
+/*
+ * Asks what wordlength the user wants. Has to be an integer between
+ * the shortest and longest word in the dictionary.
+ */
 void askForWordLength(int& iWordLength, const unsigned int& shortestWord,
                       const unsigned int& longestWord) {
     cout << "Enter a word length between " << shortestWord << " and "
@@ -164,7 +168,9 @@ void askForWordLength(int& iWordLength, const unsigned int& shortestWord,
     }
 }
 
-// Asks how many guesses the user wants. Has to be an integer greater than 0.
+/*
+ * Asks how many guesses the user wants. Has to be an integer greater than 0.
+ */
 void askForNumOfGuesses(int& iNumOfGuesses) {
     cout << "Enter number of guesses: ";
     string input;
@@ -188,6 +194,9 @@ void askForNumOfGuesses(int& iNumOfGuesses) {
     }
 }
 
+/*
+ * Returns true if input contains only numbers.
+ */
 bool isAllNumbers(const string& input) {
     for (string::const_iterator it = input.begin(); it != input.end(); ++it) {
         if (!isdigit(*it)) {
@@ -197,7 +206,9 @@ bool isAllNumbers(const string& input) {
     return true;
 }
 
-// Asks if the user wants to see how many possible words remain.
+/*
+ * Asks if the user wants to see how many possible words remain.
+ */
 void askIfShowNumOfPossibleWords(bool& showNumOfPossibleWords) {
     cout << "Show remaining words? (y/n): ";
     string answer;
@@ -218,19 +229,23 @@ void askIfShowNumOfPossibleWords(bool& showNumOfPossibleWords) {
     }
 }
 
-/* Sets the initial largest word family to the words in the dictionary
- * with the given wordlength. */
-void setInitialLargestWordFamily(const set<string>& dictionary,
+/*
+ * Sets the initial remaining words to the words in the dictionary
+ * with the given wordlength.
+ */
+void setInitialRemainingWords(const set<string>& dictionary,
                                  const unsigned int& uWordLength,
-                                 stack<string>& largestWordFamily) {
+                                 set<string>& remainingWords) {
     for (auto const& word : dictionary) {
         if (word.length() == uWordLength) {
-           largestWordFamily.push(word);
+           remainingWords.insert(word);
         }
     }
 }
 
-// Asks user for a valid guess.
+/*
+ * Asks user for a valid guess.
+ */
 void askForGuess(set<char>& alreadyGuessedLetters, char& guess) {
     string input;
     cout << "Enter a guess: ";
@@ -253,78 +268,40 @@ void askForGuess(set<char>& alreadyGuessedLetters, char& guess) {
     }
 }
 
-/* Sets largestWordFamily to the largest possible word family depending on
- * what letter the player has guessed.*/
-void findLargestWordFamily(const unsigned int& uWordLength,
-                           const set<char>& alreadyGuessedLetters,
-                           const char& guess, stack<string>& largestWordFamily) {
-    queue<stack<string>> wordFamilies;
-    wordFamilies.push(largestWordFamily);
-    stack<string> currentWordFamily;
-    string currentWord;
-    stack<string> equalsGuess;
-    stack<string> doesntEqualGuess;
-    for (unsigned int count = 0; count < uWordLength; ++count) {
-        int initialWordFamilies = wordFamilies.size();
-        for (int i = 0; i < initialWordFamilies; ++i) {
-            currentWordFamily = wordFamilies.front();
-            wordFamilies.pop();
-            if (alreadyGuessedLetters.count(currentWordFamily.top()[count])) {
-                wordFamilies.push(currentWordFamily);
-            } else {
-                while (!currentWordFamily.empty()) {
-                    currentWord = currentWordFamily.top();
-                    currentWordFamily.pop();
-                    if (currentWord[count] == guess) {
-                        equalsGuess.push(currentWord);
-                    } else {
-                        doesntEqualGuess.push(currentWord);
-                    }
-                }
-                checkBranches(wordFamilies, equalsGuess, doesntEqualGuess);
+/*
+ * Sets remainingWords to the largest possible word family depending on
+ * what letter the player has guessed.
+ */
+void findLargestWordFamily(set<string>& remainingWords, const char& guess,
+                           const int& wordLength) {
+    map<string,set<string>> wordFamilies;
+    for (set<string>::iterator wordIt = remainingWords.begin();
+         wordIt != remainingWords.end(); ++wordIt) {
+        string currentWord = *wordIt;
+        stringstream keyStream;
+        for (int i = 0; i < wordLength; ++i) {
+            if (currentWord[i] == guess) {
+                keyStream << guess;
+            }
+            else {
+                keyStream << '-';
             }
         }
-
+        wordFamilies[keyStream.str()].insert(currentWord);
     }
-    keepLargestWordFamily(wordFamilies);
-    largestWordFamily = wordFamilies.front();
-}
-
-/* Checks if the resulting stacks of the sorting in findLargestWordFamily contain
- * any words and should be pushed back to the wordFamilies queue.
- * Also clears the stacks if needed.*/
-void checkBranches(queue<stack<string>>& wordFamilies, stack<string>& equalsGuess,
-                   stack<string>& doesntEqualGuess) {
-    if (!(equalsGuess.empty())) {
-        wordFamilies.push(equalsGuess);
-        while (!(equalsGuess.empty())) {
-            equalsGuess.pop();
-        }
-    }
-    if (!(doesntEqualGuess.empty())) {
-        wordFamilies.push(doesntEqualGuess);
-        while (!(doesntEqualGuess.empty())) {
-            doesntEqualGuess.pop();
+    unsigned int currLargestSize = 0;
+    for (map<string,set<string>>::iterator mapIt = wordFamilies.begin(); mapIt != wordFamilies.end(); ++mapIt) {
+        if (mapIt->second.size() > currLargestSize) {
+            currLargestSize = mapIt->second.size();
+            remainingWords = mapIt->second;
         }
     }
 }
 
-// Removes every word family in wordFamilies but the largest one.
-void keepLargestWordFamily(queue<stack<string>>& wordFamilies) {
-    stack<string> largestWordFamily = wordFamilies.front();
-    wordFamilies.pop();
-    stack<string> currentFamily;
-    while (!wordFamilies.empty()) {
-        currentFamily = wordFamilies.front();
-        if (currentFamily.size() > largestWordFamily.size()) {
-            largestWordFamily = currentFamily;
-        }
-        wordFamilies.pop();
-    }
-    wordFamilies.push(largestWordFamily);
-}
 
-// Returns true if every letter in chosenWord has been guessed.
+/*
+ *  Returns true if every letter in chosenWord has been guessed.
+ */
 bool wordComplete(set<char>& alreadyGuessedLetters, string& chosenWord) {
     bool wordComplete = true;
     for (string::const_iterator it = chosenWord.begin();
@@ -336,8 +313,19 @@ bool wordComplete(set<char>& alreadyGuessedLetters, string& chosenWord) {
     return wordComplete;
 }
 
-/* Prints remaining guesses, already guessed letters and the current
- * state of the game. */
+/*
+ * Decrements uNumOfGuesses if the user guessed wrong, else does nothing.
+ */
+void setNumOfGuesses(unsigned int& numOfGuesses, const char& guess, const string& sampleWord) {
+    if (sampleWord.find(guess) == string::npos) {
+        --numOfGuesses;
+    }
+}
+
+/*
+ * Prints remaining guesses, already guessed letters and the current
+ * state of the game.
+ */
 void printGuessStatus(const unsigned int& uNumOfGuesses,
                       const set<char>& alreadyGuessedLetters,
                       const string& currentResult) {
@@ -359,12 +347,16 @@ void printGuessStatus(const unsigned int& uNumOfGuesses,
     cout << endl << visibleToPlayer.str() << endl << endl;
 }
 
-// Prints number of possible words remaining.
+/*
+ * Prints number of possible words remaining.
+ */
 void printNumOfPossibleWords(const unsigned int& numOfPossibleWords) {
     cout << "Possible words remaining: " << numOfPossibleWords << endl << endl;
 }
 
-// Prints end message. Differs depending on if the player won or not.
+/*
+ * Prints end message. Differs depending on if the player won or not.
+ */
 void printEndMessage(const bool& playerWon, const string& chosenWord) {
     if (playerWon) {
         cout << "Congratulations! You beat me even though I may or may not have cheated..."
@@ -375,7 +367,9 @@ void printEndMessage(const bool& playerWon, const string& chosenWord) {
     cout << "The correct word was " << chosenWord << "!" << endl << endl;
 }
 
-// Ask the user if it wants to play again and sets userAction accordingly.
+/*
+ * Ask the user if it wants to play again and sets userAction accordingly.
+ */
 void askForUserAction(char& userAction) {
     cout << "Play again? (y/n): ";
     string answer;
