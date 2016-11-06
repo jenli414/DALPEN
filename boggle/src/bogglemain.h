@@ -60,6 +60,14 @@ void printPlayerStatus(const Boggle& boggle);
 
 
 /*
+ * Returns true if input fulfills certain conditions.
+ * If any condition is not satisfied, an error message is printed.
+ * Pre-condition: Assumes that any letters in input are upper case.
+ */
+bool isValidInput(const Boggle& boggle, string& input);
+
+
+/*
  * Asks the user to input words and gives error messages upon recieving invalid
  * such until the user only presses enter to end their turn.
  * Lets boggle handle the input if it's valid.
@@ -68,11 +76,9 @@ void playPlayerTurn(Boggle& boggle);
 
 
 /*
- * Returns true if input fulfills certain conditions.
- * If any condition is not satisfied, an error message is printed.
- * Pre-condition: Assumes that any letters in input are upper case.
+ * Plays NPC's turn.
  */
-bool isValidInput(const Boggle& boggle, const string& input);
+void playNPCTurn(Boggle& boggle);
 
 
 #endif

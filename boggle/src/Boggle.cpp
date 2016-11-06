@@ -36,10 +36,9 @@ Boggle::Boggle() {
  * Constructor for pre-determined board. (For testing)
  * Pre-condition: board must be of correct length (pow(BOARD_SIZE,2))
  */
-Boggle::Boggle(const string& board) {
-    string boardUpper = board;
-    transform(boardUpper.begin(), boardUpper.end(), boardUpper.begin(), ::toupper);
-    m_boardStr = boardUpper;
+Boggle::Boggle(string& board) {
+    transform(board.begin(), board.end(), board.begin(), ::toupper);
+    setBoard(board);
     m_boardGrid.resize(BOARD_SIZE, BOARD_SIZE);
 }
 
@@ -77,10 +76,10 @@ int Boggle::getNumOfLettersReq() const {
 
 
 /*
- * Returns the string representation of the current board.
+ * Returns the current board represented in a Grid object.
  */
-string Boggle::getBoard() const {
-    return m_boardStr;
+Grid<char> Boggle::getBoard() const {
+    return m_boardGrid;
 }
 
 
@@ -111,11 +110,15 @@ void Boggle::setPlayerStatus(int& numOfWordsFound, string& foundWordsStr, int& s
 
 
 /*
- * Sets m_boardStr to given board.
+ * Takes a string representation of board and sets it to m_boardGrid.
  */
-void Boggle::setBoard(const string& board) {
-    m_boardStr = board;
-    setGrid();
+void Boggle::setBoard(string& board) {
+    transform(input.begin(), input.end(), input.begin(), ::toupper);
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        for (int col = 0; col < BOARD_SIZE; ++col) {
+            m_boardGrid.set(row, col, board[col + (row * BOARD_SIZE)]);
+        }
+    }
 }
 
 
@@ -132,7 +135,14 @@ bool Boggle::isValidLength(const string& word) const {
  */
 bool Boggle::isInBoard(string word) const {
     map<int,set<int>> visitedPositions;
-    return isInBoardHelper(0, 0, word, visitedPositions);
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        for (int col = 0; col < BOARD_SIZE; ++col) {
+            if (isInBoardHelper(row, col, word, visitedPositions)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 
@@ -178,37 +188,58 @@ void Boggle::addToPlayerFound(const string& word) {
  * Takes a string and sets it to a random, valid board.
  */
 void Boggle::setRandomBoard() {
-    m_boardStr = "";                                            // Resets m_boardStr.
+    string board = "";                                          // Resets m_boardStr.
     shuffle(CUBES, NUM_CUBES);                                  // Shuffles CUBES.
     random_device rd;                                           // Get random num from hardware.
     mt19937 eng(rd());                                          // Seed the generator.
     for (unsigned int i = 0; i < NUM_CUBES; ++i) {
         uniform_int_distribution<> distr(0,(CUBE_SIDES - 1));   // Define the range (inclusive).
-        m_boardStr += CUBES[i][distr(eng)];                     // Generates a number and adds new letter to board.
+        board += CUBES[i][distr(eng)];                          // Generates a number and adds new letter to board.
     }
-    setGrid();
+    setBoard(board);
 }
 
 
 /*
- * Sets grid representation of board in m_boardGrid using m_boardStr.
+ * Recursive helper that checks if the first letter in word is a match with
+ * the letter in (row,col) in grid and if so, checks if the rest of the word
+ * can be traced from there.
  */
-void Boggle::setGrid() {
-    for (int row = 0; row < BOARD_SIZE; ++row) {
-        for (int col = 0; col < BOARD_SIZE; ++col) {
-            m_boardGrid.set(row, col, m_boardStr[col + (row * BOARD_SIZE)]);
+bool Boggle::isInBoardHelper(int row, int col, string word,
+                             map<int,set<int>> visitedPositions) const {
+    bool isMatch = word[0] == m_boardGrid.get(row, col);
+    bool notVisited = visitedPositions[row].count(col) == 0;
+    if (word.length() == 1) {
+        return isMatch && notVisited;
+    } else if (isMatch && notVisited) {
+        visitedPositions[row].insert(col);
+        for (int row_i = -1; row_i <= 1; ++row_i) {
+            for (int col_i = -1; col_i <= 1; ++col_i) {
+                bool isCurrPosition = row_i == 0 && col_i == 0;
+                bool isInBounds = m_boardGrid.inBounds(
+                            row + row_i, col + col_i);
+                if (!isCurrPosition && isInBounds) {
+                    if (isInBoardHelper(row + row_i, col + col_i,
+                                        word.substr(1, word.size() - 1),
+                                        visitedPositions)) {
+                        return true;
+                    }
+                }
+            }
         }
+        return false;
+    } else {
+        return false;
     }
 }
 
-
 /*
- * Returns true if word can be found in board. Systematically starts from every
- * position in m_boardGrid and checks if word can be found from there by moving
- * in any valid direction from that starting point and finding the next letter.
- * Uses checkNeighbours to branch to all neighbouring letters.
+ * VARNING: Jennifer ansvarar inte för eventuella hjärnskador som kan uppstå som en följd av
+ * studerande av följande kod. Hon vill dock poängtera att den på nåt vänster fungerar.
+ * Slut på varningsmeddelande.
  */
-bool Boggle::isInBoardHelper(int currRow, int currCol, string word,
+
+/*bool Boggle::isInBoardHelper(int currRow, int currCol, string word,
                              map<int,set<int>> visitedPositions) const {
     pair<int,int> nextPosition = getNextPosition(currRow, currCol);
     bool nextIsInBounds = m_boardGrid.inBounds(nextPosition.first, nextPosition.second);
@@ -234,13 +265,13 @@ bool Boggle::isInBoardHelper(int currRow, int currCol, string word,
     } else {
         return false;
     }
-}
+}*/
 
 
 /*
  * Recursive helper to check if neighbouring letters match the next letter in word.
  */
-bool Boggle::checkNeighbours(int currRow, int currCol, string word,
+/*bool Boggle::checkNeighbours(int currRow, int currCol, string word,
                              map<int,set<int>> visitedPositions) const {
     visitedPositions[currRow].insert(currCol);
     word = word.substr(1, word.size() - 1);
@@ -257,7 +288,7 @@ bool Boggle::checkNeighbours(int currRow, int currCol, string word,
         }
     }
     return false;
-}
+}*/
 
 
 /*
@@ -265,7 +296,7 @@ bool Boggle::checkNeighbours(int currRow, int currCol, string word,
  * coordinates of the next position in m_boardGrid. Counts from top-left to
  * top-right and then moves down one row and starts from left again.
  */
-pair<int,int> Boggle::getNextPosition(int currRow, int currCol) const {
+/*pair<int,int> Boggle::getNextPosition(int currRow, int currCol) const {
     int nextCol = currCol + 1;
     int nextRow = currRow;
     if (nextCol == BOARD_SIZE) {
@@ -274,7 +305,7 @@ pair<int,int> Boggle::getNextPosition(int currRow, int currCol) const {
     }
     pair<int,int> nextPosition(nextRow, nextCol);
     return nextPosition;
-}
+}*/
 
 
 /*
@@ -396,12 +427,3 @@ pair<int,int> Boggle::getNextPosition(int currRow, int currCol) const {
                 startIndex == (lastIndex - 1);
     }
 }*/
-
-
-
-
-
-
-
-
-

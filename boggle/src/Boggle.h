@@ -33,7 +33,7 @@ public:
      * Constructor for pre-determined board. (For testing)
      * Pre-condition: board must be of correct length (pow(BOARD_SIZE,2))
      */
-    Boggle(const string& board);
+    Boggle(string& board);
 
 
     /*
@@ -57,7 +57,7 @@ public:
     /*
      * Returns the string representation of the current board.
      */
-    string getBoard() const;
+    Grid<char> getBoard() const;
 
 
     /*
@@ -70,9 +70,9 @@ public:
 
 
     /*
-     * Sets m_boardStr to given board.
+     * Takes a string representation of board and sets it to m_boardGrid.
      */
-    void setBoard(const string& board);
+    void setBoard(string& board);
 
     /*
      * Returns true if word length >= MIN_WORD_LENGTH.
@@ -108,7 +108,6 @@ public:
 
 
 private:
-    string m_boardStr = "";                 // Current board represented as a string.
     Grid<char> m_boardGrid;                 // Current board represented as a grid.
     vector<vector<string>> m_playerFound;   // Words that player has found.
     vector<vector<string>> m_NPCFound;      // Words that NPC has found.
@@ -120,10 +119,6 @@ private:
      */
     void setRandomBoard();
 
-    /*
-     * Sets grid representation of board in m_boardGrid using m_boardStr.
-     */
-    void setGrid();
 
     /*
      * Returns true if word can be found in board. Systematically starts from every
@@ -139,13 +134,13 @@ private:
      * Recursive helper to check if neighbouring letters match the next letter in word.
      */
     bool checkNeighbours(int currRow, int currCol, string word,
-                         map<int,set<int>> visitedPositions) const;
+                                 map<int,set<int>> visitedPositions) const;
 
 
     /*
-     * Takes row and column number and returns a pair that represents the coordinates
-     * of the next position in m_boardGrid. Counts from top-left to top-right and
-     * then moves down one row and starts from left again.
+     * Takes row and column number and returns a pair that represents the grid
+     * coordinates of the next position in m_boardGrid. Counts from top-left to
+     * top-right and then moves down one row and starts from left again.
      */
     pair<int,int> getNextPosition(int currRow, int currCol) const;
 

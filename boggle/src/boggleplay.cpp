@@ -20,6 +20,7 @@ void playOneGame(Boggle& boggle) {
     printBoard(boggle);
     cout << endl;
     playPlayerTurn(boggle);
+    playNPCTurn(boggle);
 }
 
 
@@ -54,7 +55,6 @@ string getBoardInput(const Boggle& boggle) {
             validInput = true;
         }
     }
-    transform(input.begin(), input.end(), input.begin(), ::toupper);
     return input;
 }
 
@@ -76,15 +76,40 @@ void clearConsole() {
  * Prints current board.
  */
 void printBoard(const Boggle& boggle) {
-    string board = boggle.getBoard();
+    Grid<char> board = boggle.getBoard();
     cout << endl;
-    for (int i = 0; i < boggle.BOARD_SIZE; ++i) {
-        for (int i = 0; i < boggle.BOARD_SIZE; ++i) {
-            cout << board[0] << " ";
-            board = board.substr(1, board.size() - 1);
+    for (int row = 0; row < boggle.BOARD_SIZE; ++row) {
+        for (int col = 0; col < boggle.BOARD_SIZE; ++col) {
+            cout << board.get(row, col) << " ";
         }
         cout << endl;
     }
+}
+
+
+/*
+ * Returns true if input fulfills certain conditions.
+ * If any condition is not satisfied, an error message is printed.
+ * Pre-condition: Assumes that any letters in input are upper case.
+ */
+bool isValidInput(const Boggle& boggle, string& input) {
+    transform(input.begin(), input.end(), input.begin(), ::toupper);
+    if (!boggle.isValidLength(input)) {
+        cout << "\"" << input << "\" is too short! " <<
+                "Please enter a word of length " <<
+                boggle.MIN_WORD_LENGTH << " or longer." << endl;
+        return false;
+    } else if (!boggle.isInDictionary(input)) {
+                cout << "Sorry, \"" << input << "\" is not in the dictionary!" << endl;
+                return false;
+    } else if (!boggle.isInBoard(input)) {
+        cout << "Sorry, couldn't find \"" << input << "\" in board!" << endl;
+        return false;
+    } else if (!boggle.isNewWord(input)) {
+        cout << "Sorry, looks like you already found \"" << input << "\"!" << endl;
+        return false;
+    }
+    return true;
 }
 
 
@@ -124,7 +149,6 @@ void playPlayerTurn(Boggle& boggle) {
                 clearConsole();
                 printBoard(boggle);
                 cout << endl;
-                transform(input.begin(), input.end(), input.begin(), ::toupper);
                 validInput = isValidInput(boggle, input);
                 if (validInput) {
                     cout << "You found a new word: " << input << "!" << endl;
@@ -140,25 +164,8 @@ void playPlayerTurn(Boggle& boggle) {
 
 
 /*
- * Returns true if input fulfills certain conditions.
- * If any condition is not satisfied, an error message is printed.
- * Pre-condition: Assumes that any letters in input are upper case.
+ * Plays NPC's turn.
  */
-bool isValidInput(const Boggle& boggle, const string& input) {
-    if (!boggle.isValidLength(input)) {
-        cout << "\"" << input << "\" is too short! " <<
-                "Please enter a word of length " <<
-                boggle.MIN_WORD_LENGTH << " or longer." << endl;
-        return false;
-    } else if (!boggle.isInDictionary(input)) {
-                cout << "Sorry, \"" << input << "\" is not in the dictionary!" << endl;
-                return false;
-    } else if (!boggle.isInBoard(input)) {
-        cout << "Sorry, couldn't find \"" << input << "\" in board!" << endl;
-        return false;
-    } else if (!boggle.isNewWord(input)) {
-        cout << "Sorry, looks like you already found \"" << input << "\"!" << endl;
-        return false;
-    }
-    return true;
+void playNPCTurn(Boggle& boggle) {
+
 }
