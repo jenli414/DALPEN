@@ -150,11 +150,11 @@ bool isValidInput(const Boggle& boggle, const string& input) {
                 "Please enter a word of length " <<
                 boggle.MIN_WORD_LENGTH << " or longer." << endl;
         return false;
+    } else if (!boggle.isInDictionary(input)) {
+                cout << "Sorry, \"" << input << "\" is not in the dictionary!" << endl;
+                return false;
     } else if (!boggle.isInBoard(input)) {
         cout << "Sorry, couldn't find \"" << input << "\" in board!" << endl;
-        return false;
-    } else if (!boggle.isInDictionary(input)) {
-        cout << "Sorry, \"" << input << "\" is not in the dictionary!" << endl;
         return false;
     } else if (!boggle.isNewWord(input)) {
         cout << "Sorry, looks like you already found \"" << input << "\"!" << endl;

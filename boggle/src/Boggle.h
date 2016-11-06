@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include "grid.h"
 #include "lexicon.h"
 
 using namespace std;
@@ -69,7 +70,7 @@ public:
 
 
     /*
-     * Sets m_board to given board.
+     * Sets m_boardStr to given board.
      */
     void setBoard(const string& board);
 
@@ -82,7 +83,7 @@ public:
     /*
      * Return true if word is "in" board.
      */
-    bool isInBoard(const string word) const;
+    bool isInBoard(string word) const;
 
     /*
      * Returns true if word is in m_dictionary.
@@ -107,29 +108,47 @@ public:
 
 
 private:
-    string m_board = "";                    // Current board.
+    string m_boardStr = "";                 // Current board represented as a string.
+    Grid<char> m_boardGrid;                 // Current board represented as a grid.
     vector<vector<string>> m_playerFound;   // Words that player has found.
     vector<vector<string>> m_NPCFound;      // Words that NPC has found.
     Lexicon m_dictionary;                   // Valid Words.
 
 
     /*
-     * Sets m_board to a random, valid board (string).
+     * Sets m_boardStr to a random, valid board (string).
      */
     void setRandomBoard();
 
+    /*
+     * Sets grid representation of board in m_boardGrid using m_boardStr.
+     */
+    void setGrid();
 
     /*
-     * Returns true if given word is in board. (Recursive helper)
+     * Returns true if word can be found in board. Systematically starts from every
+     * position in m_boardGrid and checks if word can be found from there by moving
+     * in any valid direction from that starting point and finding the next letter.
+     * Uses checkNeighbours to branch to all neighbouring letters.
      */
-    bool isInBoardHelper(int startIndex, string word, set<int> takenIndices, int lastIndex = -1) const;
+    bool isInBoardHelper(int currRow, int currCol, string word,
+                                 map<int,set<int>> visitedPositions) const;
 
 
     /*
-     * Returns true if startIndex and lastIndex are neighbours in board.
-     * I.e if moving between those indices could lead to a valid word.
+     * Recursive helper to check if neighbouring letters match the next letter in word.
      */
-    bool areNeighbours(const int& startIndex, const int& lastIndex) const;
+    bool checkNeighbours(int currRow, int currCol, string word,
+                         map<int,set<int>> visitedPositions) const;
+
+
+    /*
+     * Takes row and column number and returns a pair that represents the coordinates
+     * of the next position in m_boardGrid. Counts from top-left to top-right and
+     * then moves down one row and starts from left again.
+     */
+    pair<int,int> getNextPosition(int currRow, int currCol) const;
+
 };
 
 #endif

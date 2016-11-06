@@ -28,6 +28,7 @@ static string CUBES[NUM_CUBES] = {        // the letters on all 6 sides of every
 Boggle::Boggle() {
     Lexicon dictionary(DICTIONARY_FILE);
     m_dictionary = dictionary;
+    m_boardGrid.resize(BOARD_SIZE, BOARD_SIZE);
 }
 
 
@@ -38,7 +39,8 @@ Boggle::Boggle() {
 Boggle::Boggle(const string& board) {
     string boardUpper = board;
     transform(boardUpper.begin(), boardUpper.end(), boardUpper.begin(), ::toupper);
-    m_board = boardUpper;
+    m_boardStr = boardUpper;
+    m_boardGrid.resize(BOARD_SIZE, BOARD_SIZE);
 }
 
 
@@ -78,7 +80,7 @@ int Boggle::getNumOfLettersReq() const {
  * Returns the string representation of the current board.
  */
 string Boggle::getBoard() const {
-    return m_board;
+    return m_boardStr;
 }
 
 
@@ -109,10 +111,11 @@ void Boggle::setPlayerStatus(int& numOfWordsFound, string& foundWordsStr, int& s
 
 
 /*
- * Sets m_board to given board.
+ * Sets m_boardStr to given board.
  */
 void Boggle::setBoard(const string& board) {
-    m_board = board;
+    m_boardStr = board;
+    setGrid();
 }
 
 
@@ -127,20 +130,170 @@ bool Boggle::isValidLength(const string& word) const {
 /*
  * Returns true if given word is in board.
  */
-bool Boggle::isInBoard(const string word) const {
+bool Boggle::isInBoard(string word) const {
+    map<int,set<int>> visitedPositions;
+    return isInBoardHelper(0, 0, word, visitedPositions);
+}
+
+
+/*
+ * Returns true if word is in m_dictionary.
+ */
+bool Boggle::isInDictionary(const string& word) const {
+    return m_dictionary.contains(word);
+}
+
+
+/*
+ * Returns true if word is not in m_playerFound
+ * NOTE: This function does not check if word is in
+ * m_dictionary.
+ * Precondition: Assumes that word is in upper case.
+ */
+bool Boggle::isNewWord(const string& word) const {
+    for (unsigned int i = 0; i < 26; i++) {
+        for (vector<string>::const_iterator it = m_playerFound[i].begin();
+             it != m_playerFound[i].end(); ++it) {
+            if (*it == word) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+/*
+ * Inserts a word into m_playerFound.
+ * Precondition: We assume that word fulfills every criteria to count
+ * as a valid word as well as being upper case.
+ */
+void Boggle::addToPlayerFound(const string& word) {
+    int index = static_cast<int>(word[0]) - 65;
+    m_playerFound[index].push_back(word);
+}
+
+
+/*
+ * Takes a string and sets it to a random, valid board.
+ */
+void Boggle::setRandomBoard() {
+    m_boardStr = "";                                            // Resets m_boardStr.
+    shuffle(CUBES, NUM_CUBES);                                  // Shuffles CUBES.
+    random_device rd;                                           // Get random num from hardware.
+    mt19937 eng(rd());                                          // Seed the generator.
+    for (unsigned int i = 0; i < NUM_CUBES; ++i) {
+        uniform_int_distribution<> distr(0,(CUBE_SIDES - 1));   // Define the range (inclusive).
+        m_boardStr += CUBES[i][distr(eng)];                     // Generates a number and adds new letter to board.
+    }
+    setGrid();
+}
+
+
+/*
+ * Sets grid representation of board in m_boardGrid using m_boardStr.
+ */
+void Boggle::setGrid() {
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        for (int col = 0; col < BOARD_SIZE; ++col) {
+            m_boardGrid.set(row, col, m_boardStr[col + (row * BOARD_SIZE)]);
+        }
+    }
+}
+
+
+/*
+ * Returns true if word can be found in board. Systematically starts from every
+ * position in m_boardGrid and checks if word can be found from there by moving
+ * in any valid direction from that starting point and finding the next letter.
+ * Uses checkNeighbours to branch to all neighbouring letters.
+ */
+bool Boggle::isInBoardHelper(int currRow, int currCol, string word,
+                             map<int,set<int>> visitedPositions) const {
+    pair<int,int> nextPosition = getNextPosition(currRow, currCol);
+    bool nextIsInBounds = m_boardGrid.inBounds(nextPosition.first, nextPosition.second);
+    bool isStart = visitedPositions.empty();
+    bool isMatch = word[0] == m_boardGrid.get(currRow, currCol);
+    bool notVisited = true;
+    if (!isStart) {
+        notVisited = visitedPositions[currRow].count(currCol) == 0;// This will make visitedPositions not empty if it was empty before...
+    }
+    if (word.length() == 1) {
+        return isMatch && notVisited;
+    } else if (isMatch && notVisited) {
+        if (isStart && nextIsInBounds) {
+            return isInBoardHelper(nextPosition.first, nextPosition.second,
+                                   word, visitedPositions) ||
+                    checkNeighbours(currRow, currCol, word, visitedPositions);
+        } else {
+            return checkNeighbours(currRow, currCol, word, visitedPositions);
+        }
+    } else if (isStart && nextIsInBounds) {
+            return isInBoardHelper(nextPosition.first, nextPosition.second, word,
+                                   visitedPositions);
+    } else {
+        return false;
+    }
+}
+
+
+/*
+ * Recursive helper to check if neighbouring letters match the next letter in word.
+ */
+bool Boggle::checkNeighbours(int currRow, int currCol, string word,
+                             map<int,set<int>> visitedPositions) const {
+    visitedPositions[currRow].insert(currCol);
+    word = word.substr(1, word.size() - 1);
+    for (int row_i = -1; row_i <= 1; ++row_i) {
+        for (int col_i = -1; col_i <= 1; ++col_i) {
+            bool isCurrPosition = row_i == 0 && col_i == 0;
+            bool inBounds = m_boardGrid.inBounds(
+                        currRow + row_i, currCol + col_i);
+            if (!isCurrPosition && inBounds) {
+                if (isInBoardHelper(currRow + row_i, currCol + col_i, word, visitedPositions)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+/*
+ * Takes row and column number and returns a pair that represents the grid
+ * coordinates of the next position in m_boardGrid. Counts from top-left to
+ * top-right and then moves down one row and starts from left again.
+ */
+pair<int,int> Boggle::getNextPosition(int currRow, int currCol) const {
+    int nextCol = currCol + 1;
+    int nextRow = currRow;
+    if (nextCol == BOARD_SIZE) {
+        nextRow += 1;
+        nextCol = 0;
+    }
+    pair<int,int> nextPosition(nextRow, nextCol);
+    return nextPosition;
+}
+
+
+/*
+ * Returns true if given word is in board.
+ */
+/*bool Boggle::isInBoard(const string word) const {
     set<int> takenIndices;
     return isInBoardHelper(0, word, takenIndices);
-}
+}*/
 
 
 /*
  * Returns true if given word is in board. (Recursive helper)
  */
-bool Boggle::isInBoardHelper(int startIndex, string word, set<int> takenIndices, int lastIndex) const {
+/*bool Boggle::isInBoardHelper(int startIndex, string word, set<int> takenIndices, int lastIndex) const {
     if (word.length() == 1) {
-        return word[0] == m_board[startIndex] && takenIndices.find(startIndex) == takenIndices.end() && areNeighbours(startIndex, lastIndex);
+        return word[0] == m_boardStr[startIndex] && takenIndices.find(startIndex) == takenIndices.end() && areNeighbours(startIndex, lastIndex);
 
-    } else if (word[0] == m_board[startIndex] && takenIndices.find(startIndex) == takenIndices.end() && areNeighbours(startIndex, lastIndex)) {
+    } else if (word[0] == m_boardStr[startIndex] && takenIndices.find(startIndex) == takenIndices.end() && areNeighbours(startIndex, lastIndex)) {
         string wordWithoutFirstLetter = word.substr(1, word.size() - 1);
         if (lastIndex == -1) {
             set<int> newTakenIndices;
@@ -172,14 +325,14 @@ bool Boggle::isInBoardHelper(int startIndex, string word, set<int> takenIndices,
     } else {
         return false;
     }
-}
+}*/
 
 
 /*
  * Returns true if startIndex and lastIndex are neighbours in board.
  * I.e if moving between those indices could lead to a valid word.
  */
-bool Boggle::areNeighbours(const int& startIndex, const int& lastIndex) const {
+/*bool Boggle::areNeighbours(const int& startIndex, const int& lastIndex) const {
     if ((startIndex < 0) || (startIndex > ((BOARD_SIZE * BOARD_SIZE) - 1))) {               // startIndex utanför range
         return false;
     } else if (lastIndex == -1) {                                                           // Vi har inget senaste index
@@ -242,57 +395,13 @@ bool Boggle::areNeighbours(const int& startIndex, const int& lastIndex) const {
                 startIndex == (lastIndex + BOARD_SIZE - 1) ||
                 startIndex == (lastIndex - 1);
     }
-}
+}*/
 
 
-/*
- * Returns true if word is in m_dictionary.
- */
-bool Boggle::isInDictionary(const string& word) const {
-    return m_dictionary.contains(word);
-}
 
 
-/*
- * Returns true if word is not in m_playerFound
- * NOTE: This function does not check if word is in
- * m_dictionary.
- * Precondition: Assumes that word is in upper case.
- */
-bool Boggle::isNewWord(const string& word) const {
-    for (unsigned int i = 0; i < 26; i++) {
-        for (vector<string>::const_iterator it = m_playerFound[i].begin();
-             it != m_playerFound[i].end(); ++it) {
-            if (*it == word) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
 
 
-/*
- * Inserts a word into m_playerFound.
- * Precondition: We assume that word fulfills every criteria to count
- * as a valid word as well as being upper case.
- */
-void Boggle::addToPlayerFound(const string& word) {
-    int index = static_cast<int>(word[0]) - 65;
-    m_playerFound[index].push_back(word);
-}
 
 
-/*
- * Takes a string and sets it to a random, valid board.
- */
-void Boggle::setRandomBoard() {
-    m_board = "";                                               // Resets m_board.
-    shuffle(CUBES, NUM_CUBES);                                  // Shuffles CUBES.
-    random_device rd;                                           // Get random num from hardware.
-    mt19937 eng(rd());                                          // Seed the generator.
-    for (unsigned int i = 0; i < NUM_CUBES; ++i) {
-        uniform_int_distribution<> distr(0,(CUBE_SIDES - 1));   // Define the range (inclusive).
-        m_board += CUBES[i][distr(eng)];                        // Generates a number and adds new letter to board.
-    }
-}
+
