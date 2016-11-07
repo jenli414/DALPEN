@@ -214,7 +214,6 @@ void Boggle::findAllWords() {
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
             findAllWordsHelper(row, col, prefix, VISITED_POSITIONS);
-            prefix.pop_back();
         }
     }
 }
@@ -284,11 +283,10 @@ void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
     prefix += m_boardGrid.get(row,col);
     bool isValidWord = isValidLength(prefix) &&
             isInDictionary(prefix) && isNewWord(prefix);
-    bool morePossibleWords = m_dictionary.containsPrefix(prefix);
     if (isValidWord) {
         addToCharacterFound(prefix, m_NPCFound, m_NPCFoundNum,
                             m_NPCScore, m_NPCFoundStr);
-    } if (morePossibleWords) {
+    } if (m_dictionary.containsPrefix(prefix)) {
         for (int row_i = -1; row_i <= 1; ++row_i) {
             for (int col_i = -1; col_i <= 1; ++col_i) {
                 bool isCurrPos = row_i == 0 && col_i == 0;
@@ -300,11 +298,11 @@ void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
                     findAllWordsHelper(row + row_i, col + col_i, prefix,
                                        visitedPositions);
                     visitedPositions.set(row, col, false);
-                    prefix.pop_back();
                 }
             }
         }
     }
+    prefix.pop_back();
 }
 
 
