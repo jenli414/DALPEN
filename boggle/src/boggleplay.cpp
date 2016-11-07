@@ -35,8 +35,7 @@ string getBoardInput(const Boggle& boggle) {
     cout << "Please enter a board, i.e. " << numOfLettersReq
          << " letters from A-Z: " << endl;
     string input;
-    bool validInput = false;
-    while (!validInput) {
+    while (true) {
         getline(cin, input);
         numOfLettersEntered = 0;
         bool isAllLetters = true;
@@ -52,10 +51,9 @@ string getBoardInput(const Boggle& boggle) {
         } else if (!isAllLetters) {
             cout << "Please enter a only LETTERS from A-Z!: " << endl;
         } else {
-            validInput = true;
+            return input;
         }
     }
-    return input;
 }
 
 

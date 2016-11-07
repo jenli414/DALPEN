@@ -41,12 +41,6 @@ void Boggle::newGame() {
     setRandomBoard();
     m_playerFound.clear();
     m_NPCFound.clear();
-    for (int i = 0; i < 26; ++i) {
-        vector<string> playerFoundVector;
-        vector<string> NPCFoundVector;
-        m_playerFound.push_back(playerFoundVector);
-        m_NPCFound.push_back(NPCFoundVector);
-    }
     m_playerFoundNum = 0;
     m_NPCFoundNum = 0;
     m_playerScore = 0;
@@ -173,55 +167,33 @@ bool Boggle::isInDictionary(const string& word) const {
  */
 bool Boggle::isNewWord(string& word) const {
     transform(word.begin(), word.end(), word.begin(), ::toupper);
-    int index = static_cast<int>(word[0]) - 65;
-    for (vector<string>::const_iterator it = m_playerFound[index].begin();
-         it != m_playerFound[index].end(); ++it) {
-        if (*it == word) {
-            return false;
-        }
-    }
-    for (vector<string>::const_iterator it = m_NPCFound[index].begin();
-         it != m_NPCFound[index].end(); ++it) {
-        if (*it == word) {
-            return false;
-        }
-    }
-    return true;
+    return !m_playerFound.count(word) && !m_NPCFound.count(word);
 }
-
 
 /*
  * Inserts a word into m_playerFound and updates relevant data members.
+ * Pre-condition: Word is a valid word and in upper case.
  */
 void Boggle::addToPlayerFound(string& word) {
-    transform(word.begin(), word.end(), word.begin(), ::toupper);
-    int index = static_cast<int>(word[0]) - 65;
-    m_playerFound[index].push_back(word);
-    m_playerFoundNum++;
-    m_playerScore += word.length() - 3;
-    if (m_playerFoundNum == 1) {
-        m_playerFoundStr = "{" + word + "}";
-    } else {
-        m_playerFoundStr.pop_back();
-        m_playerFoundStr += ", " + word + "}";
-    }
+    addToCharacterFound(word, m_playerFound, m_playerFoundNum,
+                        m_playerScore, m_playerFoundStr);
 }
 
 
 /*
- * Inserts a word into m_NPCFound and updates relevant data members.
+ * Inserts a word into found and updates the other given data members.
+ * Pre-condition: Word is a valid word and in upper case.
  */
-void Boggle::addToNPCFound(string& word) {
-    transform(word.begin(), word.end(), word.begin(), ::toupper);
-    int index = static_cast<int>(word[0]) - 65;
-    m_NPCFound[index].push_back(word);
-    m_NPCFoundNum++;
-    m_NPCScore += word.length() - 3;
-    if (m_NPCFoundNum == 1) {
-        m_NPCFoundStr = "{" + word + "}";
+void Boggle::addToCharacterFound(const string& word, set<string>& found,
+                                 int& foundNum, int& score, string& foundStr) {
+    found.insert(word);
+    foundNum++;
+    score += word.length() - 3;
+    if (foundNum == 1) {
+        foundStr = "{" + word + "}";
     } else {
-        m_NPCFoundStr.pop_back();
-        m_NPCFoundStr += ", " + word + "}";
+        foundStr.pop_back();
+        foundStr += ", " + word + "}";
     }
 }
 
@@ -231,10 +203,9 @@ void Boggle::addToNPCFound(string& word) {
  */
 void Boggle::findAllWords() {
     map<int,set<int>> visitedPositions;
-    string prefix = "";
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
-            findAllWordsHelper(row, col, prefix, visitedPositions);
+            findAllWordsHelper(row, col, "", visitedPositions);
         }
     }
 }
@@ -262,19 +233,18 @@ void Boggle::setRandomBoard() {
  * traced from there.
  */
 bool Boggle::isInBoardHelper(const int& row, const int& col, string word,
-                             map<int,set<int>> visitedPositions) const {
+                             map<int,set<int>>& visitedPositions) const {
     bool isMatch = word[0] == m_boardGrid.get(row, col);
-    bool notVisited = visitedPositions[row].count(col) == 0;
     if (word.length() == 1) {
-        return isMatch && notVisited;
-    } else if (isMatch && notVisited) {
+        return isMatch;
+    } else if (isMatch) {
         visitedPositions[row].insert(col);
         for (int row_i = -1; row_i <= 1; ++row_i) {
             for (int col_i = -1; col_i <= 1; ++col_i) {
-                bool isCurrPosition = row_i == 0 && col_i == 0;
                 bool isInBounds = m_boardGrid.inBounds(
                             row + row_i, col + col_i);
-                if (!isCurrPosition && isInBounds) {
+                bool visited = visitedPositions[row + row_i].count(col + col_i);
+                if (isInBounds && !visited) {
                     if (isInBoardHelper(row + row_i, col + col_i,
                                         word.substr(1, word.size() - 1),
                                         visitedPositions)) {
@@ -283,8 +253,10 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, string word,
                 }
             }
         }
+        visitedPositions.clear();
         return false;
     } else {
+        visitedPositions.clear();
         return false;
     }
 }
@@ -299,222 +271,62 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, string word,
  */
 void Boggle::findAllWordsHelper(const int& row, const int& col, string prefix,
                              map<int,set<int>> visitedPositions) {
-    bool notVisited = visitedPositions[row].count(col) == 0;
-    if (notVisited) {
-        string newPrefix = prefix + m_boardGrid.get(row,col);
-        bool isValidWord = isValidLength(newPrefix) &&
-                isInDictionary(newPrefix) && isNewWord(newPrefix);
-        bool morePossibleWords = m_dictionary.containsPrefix(newPrefix);
-        if (isValidWord) {
-            addToNPCFound(newPrefix);
-        } if (morePossibleWords) {
-            visitedPositions[row].insert(col);
-            for (int row_i = -1; row_i <= 1; ++row_i) {
-                for (int col_i = -1; col_i <= 1; ++col_i) {
-                    bool isCurrPosition = row_i == 0 && col_i == 0;
-                    bool isInBounds = m_boardGrid.inBounds(
-                                row + row_i, col + col_i);
-                    if (!isCurrPosition && isInBounds) {
-                        findAllWordsHelper(row + row_i, col + col_i, newPrefix,
-                                           visitedPositions);
-                    }
+    prefix += m_boardGrid.get(row,col);
+    bool isValidWord = isValidLength(prefix) &&
+            isInDictionary(prefix) && isNewWord(prefix);
+    bool morePossibleWords = m_dictionary.containsPrefix(prefix);
+    if (isValidWord) {
+        addToCharacterFound(prefix, m_NPCFound, m_NPCFoundNum,
+                            m_NPCScore, m_NPCFoundStr);
+    } if (morePossibleWords) {
+        visitedPositions[row].insert(col);
+        for (int row_i = -1; row_i <= 1; ++row_i) {
+            for (int col_i = -1; col_i <= 1; ++col_i) {
+                bool isInBounds = m_boardGrid.inBounds(
+                            row + row_i, col + col_i);
+                bool visited = visitedPositions[row + row_i].count(col + col_i);
+                if (isInBounds && !visited) {
+                    findAllWordsHelper(row + row_i, col + col_i, prefix,
+                                       visitedPositions);
                 }
             }
         }
     }
 }
 
-/*
- * VARNING: Jennifer ansvarar inte för eventuella hjärnskador som kan uppstå som en följd av
- * betraktande utav följande kod. Hon vill dock poängtera att den på nåt vänster fungerar.
- * Slut på varningsmeddelande.
- */
 
-/*bool Boggle::isInBoardHelper(int currRow, int currCol, string word,
-                             map<int,set<int>> visitedPositions) const {
-    pair<int,int> nextPosition = getNextPosition(currRow, currCol);
-    bool nextIsInBounds = m_boardGrid.inBounds(nextPosition.first, nextPosition.second);
-    bool isStart = visitedPositions.empty();
-    bool isMatch = word[0] == m_boardGrid.get(currRow, currCol);
-    bool notVisited = true;
-    if (!isStart) {
-        notVisited = visitedPositions[currRow].count(currCol) == 0;// This will make visitedPositions not empty if it was empty before...
-    }
-    if (word.length() == 1) {
-        return isMatch && notVisited;
-    } else if (isMatch && notVisited) {
-        if (isStart && nextIsInBounds) {
-            return isInBoardHelper(nextPosition.first, nextPosition.second,
-                                   word, visitedPositions) ||
-                    checkNeighbours(currRow, currCol, word, visitedPositions);
-        } else {
-            return checkNeighbours(currRow, currCol, word, visitedPositions);
-        }
-    } else if (isStart && nextIsInBounds) {
-            return isInBoardHelper(nextPosition.first, nextPosition.second, word,
-                                   visitedPositions);
+
+
+
+/*
+ * Inserts a word into m_playerFound and updates relevant data members.
+ * Pre-condition: Word is a valid word and in upper case.
+ */
+/*void Boggle::addToPlayerFound(string& word) {
+    m_playerFound.insert(word);
+    m_playerFoundNum++;
+    m_playerScore += word.length() - 3;
+    if (m_playerFoundNum == 1) {
+        m_playerFoundStr = "{" + word + "}";
     } else {
-        return false;
+        m_playerFoundStr.pop_back();
+        m_playerFoundStr += ", " + word + "}";
     }
 }*/
 
 
 /*
- * Recursive helper to check if neighbouring letters match the next letter in word.
+ * Inserts a word into m_NPCFound and updates relevant data members.
+ * Pre-condition: Word is a valid word and in upper case.
  */
-/*bool Boggle::checkNeighbours(int currRow, int currCol, string word,
-                             map<int,set<int>> visitedPositions) const {
-    visitedPositions[currRow].insert(currCol);
-    word = word.substr(1, word.size() - 1);
-    for (int row_i = -1; row_i <= 1; ++row_i) {
-        for (int col_i = -1; col_i <= 1; ++col_i) {
-            bool isCurrPosition = row_i == 0 && col_i == 0;
-            bool inBounds = m_boardGrid.inBounds(
-                        currRow + row_i, currCol + col_i);
-            if (!isCurrPosition && inBounds) {
-                if (isInBoardHelper(currRow + row_i, currCol + col_i, word, visitedPositions)) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}*/
-
-
-/*
- * Takes row and column number and returns a pair that represents the grid
- * coordinates of the next position in m_boardGrid. Counts from top-left to
- * top-right and then moves down one row and starts from left again.
- */
-/*pair<int,int> Boggle::getNextPosition(int currRow, int currCol) const {
-    int nextCol = currCol + 1;
-    int nextRow = currRow;
-    if (nextCol == BOARD_SIZE) {
-        nextRow += 1;
-        nextCol = 0;
-    }
-    pair<int,int> nextPosition(nextRow, nextCol);
-    return nextPosition;
-}*/
-
-
-/*
- * Returns true if given word is in board.
- */
-/*bool Boggle::isInBoard(const string word) const {
-    set<int> takenIndices;
-    return isInBoardHelper(0, word, takenIndices);
-}*/
-
-
-/*
- * Returns true if given word is in board. (Recursive helper)
- */
-/*bool Boggle::isInBoardHelper(int startIndex, string word, set<int> takenIndices, int lastIndex) const {
-    if (word.length() == 1) {
-        return word[0] == m_boardStr[startIndex] && takenIndices.find(startIndex) == takenIndices.end() && areNeighbours(startIndex, lastIndex);
-
-    } else if (word[0] == m_boardStr[startIndex] && takenIndices.find(startIndex) == takenIndices.end() && areNeighbours(startIndex, lastIndex)) {
-        string wordWithoutFirstLetter = word.substr(1, word.size() - 1);
-        if (lastIndex == -1) {
-            set<int> newTakenIndices;
-            takenIndices.insert(startIndex);
-            return  isInBoardHelper(startIndex + 1, word, newTakenIndices) ||                             // Kolla vad som händer om vi startar helt på nästa index
-                    isInBoardHelper(startIndex - 1, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå till vänster
-                    isInBoardHelper(startIndex + 1, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå till höger
-                    isInBoardHelper(startIndex - 4, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå uppåt
-                    isInBoardHelper(startIndex + 4, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå nedåt
-                    isInBoardHelper(startIndex + 5, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå snett nedåt höger
-                    isInBoardHelper(startIndex + 3, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå snett nedåt vänster
-                    isInBoardHelper(startIndex - 5, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå snett uppåt vänster
-                    isInBoardHelper(startIndex - 3, wordWithoutFirstLetter, takenIndices, startIndex);    // Prova gå snett uppåt höger
-        } else {
-            takenIndices.insert(startIndex);
-            return  isInBoardHelper(startIndex - 1, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå till vänster
-                    isInBoardHelper(startIndex + 1, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå till höger
-                    isInBoardHelper(startIndex - 4, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå uppåt
-                    isInBoardHelper(startIndex + 4, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå nedåt
-                    isInBoardHelper(startIndex + 5, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå snett nedåt höger
-                    isInBoardHelper(startIndex + 3, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå snett nedåt vänster
-                    isInBoardHelper(startIndex - 5, wordWithoutFirstLetter, takenIndices, startIndex) ||  // Prova gå snett uppåt vänster
-                    isInBoardHelper(startIndex - 3, wordWithoutFirstLetter, takenIndices, startIndex);    // Prova gå snett uppåt höger
-        }
-
-    } else if (lastIndex == -1 && areNeighbours(startIndex, lastIndex)) {
-        return isInBoardHelper(startIndex + 1, word, takenIndices);
-
+/*void Boggle::addToNPCFound(string& word) {
+    m_NPCFound.insert(word);
+    m_NPCFoundNum++;
+    m_NPCScore += word.length() - 3;
+    if (m_NPCFoundNum == 1) {
+        m_NPCFoundStr = "{" + word + "}";
     } else {
-        return false;
-    }
-}*/
-
-
-/*
- * Returns true if startIndex and lastIndex are neighbours in board.
- * I.e if moving between those indices could lead to a valid word.
- */
-/*bool Boggle::areNeighbours(const int& startIndex, const int& lastIndex) const {
-    if ((startIndex < 0) || (startIndex > ((BOARD_SIZE * BOARD_SIZE) - 1))) {               // startIndex utanför range
-        return false;
-    } else if (lastIndex == -1) {                                                           // Vi har inget senaste index
-        return true;
-    } else if (lastIndex == 0) {                                                            // Övre vänstra hörnet är granne med
-        return startIndex == 1 ||                                                           // Bokstaven på index 1
-                startIndex == BOARD_SIZE ||                                                 // Bokstaven nedanför
-                startIndex == (BOARD_SIZE + 1);                                             // Bokstaven snett nedanför till höger
-
-    } else if (lastIndex == (BOARD_SIZE - 1)) {                                             // Övre högra hörnet är granne med
-        return startIndex == (lastIndex - 1) ||                                             // Bokstaven till vänster
-                startIndex == (lastIndex + BOARD_SIZE) ||                                   // Bokstaven nedanför
-                startIndex == (lastIndex + BOARD_SIZE - 1);                                 // Bokstaven snett nedanför till vänster
-
-    } else if (lastIndex == (BOARD_SIZE * (BOARD_SIZE - 1))) {                              // Nedre vänstra hörnet är granne med
-        return startIndex == (lastIndex + 1) ||                                             // Bokstaven till höger
-                startIndex == (lastIndex - BOARD_SIZE) ||                                   // Bokstaven ovanför
-                startIndex == (lastIndex - BOARD_SIZE + 1);                                 // Bokstaven snett ovanför till höger
-
-    } else if (lastIndex == ((BOARD_SIZE * BOARD_SIZE) - 1)) {                              // Nedre högre hörnet är granne med
-        return startIndex == (lastIndex - 1) ||                                             // Bokstaven till vänster
-                startIndex == (lastIndex - BOARD_SIZE) ||                                   // Bokstaven ovanför
-                startIndex == (lastIndex - BOARD_SIZE - 1);                                 // Bokstaven snett ovanför till vänster
-
-    } else if (lastIndex < BOARD_SIZE) {                                                    // Första raden, ej hörn, är granne med:
-        return startIndex == (lastIndex - 1) ||                                             // Bokstaven till vänster
-                startIndex == (lastIndex + 1) ||                                            // Bokstaven till höger
-                startIndex == (lastIndex + BOARD_SIZE) ||                                   // Bokstaven nedanför
-                startIndex == ((lastIndex + BOARD_SIZE) - 1) ||                             // Bokstaven snett under till vänster
-                startIndex == ((lastIndex + BOARD_SIZE) + 1);                               // Bokstaven snett under till höger
-
-    } else if ((lastIndex + 1 % BOARD_SIZE) == 0) {                                         // Kolumnen till höger, ej hörn, är granne med:
-        return startIndex == (lastIndex - BOARD_SIZE) ||                                    // Bokstaven ovanför
-                startIndex == (lastIndex + BOARD_SIZE) ||                                   // Bokstaven nedanför
-                startIndex == (lastIndex - 1) ||                                            // Bokstaven direkt åt vänster
-                startIndex == ((lastIndex - BOARD_SIZE) - 1) ||                             // Bokstaven snett upp till vänster
-                startIndex == ((lastIndex + BOARD_SIZE) - 1);                               // Bokstaven snett ner till vänster
-
-    } else if (lastIndex >= (BOARD_SIZE * (BOARD_SIZE - 1))) {                              // Undre raden, ej hörn, är granne med:
-        return startIndex == (lastIndex - 1) ||                                             // Bokstaven till vänster
-                startIndex == (lastIndex + 1) ||                                            // Bokstaven till höger
-                startIndex == (lastIndex - BOARD_SIZE) ||                                   // Bokstaven ovanför
-                startIndex == ((lastIndex - BOARD_SIZE) - 1) ||                             // Bokstaven snett över till vänster
-                startIndex == ((lastIndex - BOARD_SIZE) + 1);                               // Bokstaven snett över till höger
-
-    } else if ((lastIndex % BOARD_SIZE) == 0) {                                             // Kolumnen till vänster, ej hörn, är granne med:
-        return startIndex == (lastIndex - BOARD_SIZE) ||                                    // Bokstaven ovanför
-                startIndex == (lastIndex + BOARD_SIZE) ||                                   // Bokstaven nedanför
-                startIndex == (lastIndex + 1) ||                                            // Bokstaven direkt åt höger
-                startIndex == ((lastIndex - BOARD_SIZE) + 1) ||                             // Bokstaven snett ovanför till höger
-                startIndex == ((lastIndex + BOARD_SIZE) + 1);                               // Bokstaven snett nedanför till höger
-
-    } else {                                                                                // Mittenbokstäverna är granne med
-        return startIndex == (lastIndex - BOARD_SIZE - 1) ||                                // Alla  8 bokstäver runt om sig
-                startIndex == (lastIndex - BOARD_SIZE) ||
-                startIndex == (lastIndex - BOARD_SIZE + 1) ||
-                startIndex == (lastIndex + 1) ||
-                startIndex == (lastIndex + BOARD_SIZE + 1) ||
-                startIndex == (lastIndex + BOARD_SIZE) ||
-                startIndex == (lastIndex + BOARD_SIZE - 1) ||
-                startIndex == (lastIndex - 1);
+        m_NPCFoundStr.pop_back();
+        m_NPCFoundStr += ", " + word + "}";
     }
 }*/

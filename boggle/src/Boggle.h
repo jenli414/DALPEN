@@ -122,14 +122,17 @@ public:
 
     /*
      * Inserts a word into m_playerFound and updates relevant data members.
+     * Pre-condition: Word is a valid word and in upper case.
      */
     void addToPlayerFound(string& word);
 
 
     /*
-     * Inserts a word into m_NPCFound and updates relevant data members.
+     * Inserts a word into found and updates the other given data members.
+     * Pre-condition: Word is a valid word and in upper case.
      */
-    void addToNPCFound(string& word);
+    void addToCharacterFound(const string& word, set<string>& found,
+                                     int& foundNum, int& score, string& foundStr);
 
 
     /*
@@ -140,8 +143,8 @@ public:
 
 private:
     Grid<char> m_boardGrid;                 // Current board represented as a grid.
-    vector<vector<string>> m_playerFound;   // Words that player has found.
-    vector<vector<string>> m_NPCFound;      // Words that NPC has found.
+    set<string> m_playerFound;              // Words that player has found.
+    set<string> m_NPCFound;                 // Words that NPC has found.
     Lexicon m_dictionary;                   // Valid Words.
     int m_playerFoundNum = 0;               // Number of words in m_playerFound
     int m_NPCFoundNum = 0;                  // Number of words in m_NPCFound
@@ -163,7 +166,7 @@ private:
      * traced from there.
      */
     bool isInBoardHelper(const int& currRow, const int& currCol, string word,
-                                 map<int,set<int>> visitedPositions) const;
+                                 map<int,set<int>>& visitedPositions) const;
 
 
     /*
