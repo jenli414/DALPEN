@@ -14,6 +14,11 @@ static string CUBES[NUM_CUBES] = {        // the letters on all 6 sides of every
    "DISTTY", "EEGHNW", "EEINSU", "EHRTVW",
    "EIOSST", "ELRTTY", "HIMNQU", "HLNNRZ"
 };
+/*
+ * VISITED_POSITIONS is used to keep track of already visited letters when looking
+ * for player and NPC words in board.
+ */
+static Grid<bool> VISITED_POSITIONS;
 
 
 /*
@@ -23,6 +28,12 @@ Boggle::Boggle() {
     Lexicon dictionary(DICTIONARY_FILE);
     m_dictionary = dictionary;
     m_boardGrid.resize(BOARD_SIZE, BOARD_SIZE);
+    VISITED_POSITIONS.resize(BOARD_SIZE, BOARD_SIZE);
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        for (int col = 0; col < BOARD_SIZE; ++col) {
+            VISITED_POSITIONS.set(row, col, false);
+        }
+    }
 }
 
 
@@ -138,11 +149,10 @@ bool Boggle::isValidLength(const string& word) const {
 /*
  * Returns true if given word is in board.
  */
-bool Boggle::isInBoard(string word) const {
-    map<int,set<int>> visitedPositions;
+bool Boggle::isInBoard(const string& word) const {
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
-            if (isInBoardHelper(row, col, word, visitedPositions)) {
+            if (isInBoardHelper(row, col, word, VISITED_POSITIONS)) {
                 return true;
             }
         }
@@ -160,10 +170,8 @@ bool Boggle::isInDictionary(const string& word) const {
 
 
 /*
- * Returns true if word is not in m_playerFound or
- * m_NPCFound.
- * NOTE: This function does not check if word is in
- * m_dictionary.
+ * Returns true if word is not in m_playerFound or m_NPCFound.
+ * NOTE: This function does not check if word is in m_dictionary.
  */
 bool Boggle::isNewWord(string& word) const {
     transform(word.begin(), word.end(), word.begin(), ::toupper);
@@ -174,7 +182,7 @@ bool Boggle::isNewWord(string& word) const {
  * Inserts a word into m_playerFound and updates relevant data members.
  * Pre-condition: Word is a valid word and in upper case.
  */
-void Boggle::addToPlayerFound(string& word) {
+void Boggle::addToPlayerFound(const string& word) {
     addToCharacterFound(word, m_playerFound, m_playerFoundNum,
                         m_playerScore, m_playerFoundStr);
 }
@@ -202,10 +210,11 @@ void Boggle::addToCharacterFound(const string& word, set<string>& found,
  * Finds all words in board that player hasn't and adds them to m_NPCFound.
  */
 void Boggle::findAllWords() {
-    map<int,set<int>> visitedPositions;
+    string prefix = "";
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
-            findAllWordsHelper(row, col, "", visitedPositions);
+            findAllWordsHelper(row, col, prefix, VISITED_POSITIONS);
+            prefix.pop_back();
         }
     }
 }
@@ -232,31 +241,32 @@ void Boggle::setRandomBoard() {
  * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
  * traced from there.
  */
-bool Boggle::isInBoardHelper(const int& row, const int& col, string word,
-                             map<int,set<int>>& visitedPositions) const {
+bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word,
+                             Grid<bool>& visitedPositions) const {
     bool isMatch = word[0] == m_boardGrid.get(row, col);
     if (word.length() == 1) {
         return isMatch;
     } else if (isMatch) {
-        visitedPositions[row].insert(col);
         for (int row_i = -1; row_i <= 1; ++row_i) {
             for (int col_i = -1; col_i <= 1; ++col_i) {
                 bool isInBounds = m_boardGrid.inBounds(
                             row + row_i, col + col_i);
-                bool visited = visitedPositions[row + row_i].count(col + col_i);
+                bool visited = isInBounds &&
+                        visitedPositions.get(row + row_i, col + col_i);
                 if (isInBounds && !visited) {
+                    visitedPositions.set(row, col, true);
                     if (isInBoardHelper(row + row_i, col + col_i,
                                         word.substr(1, word.size() - 1),
                                         visitedPositions)) {
+                        visitedPositions.set(row, col, false);
                         return true;
                     }
+                    visitedPositions.set(row, col, false);
                 }
             }
         }
-        visitedPositions.clear();
         return false;
     } else {
-        visitedPositions.clear();
         return false;
     }
 }
@@ -269,8 +279,8 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, string word,
  * prefix to another word in dictionary we continue looking for valid words
  * by moving to neighbouring letters in board.
  */
-void Boggle::findAllWordsHelper(const int& row, const int& col, string prefix,
-                             map<int,set<int>> visitedPositions) {
+void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
+                             Grid<bool>& visitedPositions) {
     prefix += m_boardGrid.get(row,col);
     bool isValidWord = isValidLength(prefix) &&
             isInDictionary(prefix) && isNewWord(prefix);
@@ -279,15 +289,18 @@ void Boggle::findAllWordsHelper(const int& row, const int& col, string prefix,
         addToCharacterFound(prefix, m_NPCFound, m_NPCFoundNum,
                             m_NPCScore, m_NPCFoundStr);
     } if (morePossibleWords) {
-        visitedPositions[row].insert(col);
         for (int row_i = -1; row_i <= 1; ++row_i) {
             for (int col_i = -1; col_i <= 1; ++col_i) {
-                bool isInBounds = m_boardGrid.inBounds(
-                            row + row_i, col + col_i);
-                bool visited = visitedPositions[row + row_i].count(col + col_i);
-                if (isInBounds && !visited) {
+                bool isCurrPos = row_i == 0 && col_i == 0;
+                bool isInBounds = m_boardGrid.inBounds(row + row_i, col + col_i);
+                bool visited = isInBounds &&
+                        visitedPositions.get(row + row_i, col + col_i);
+                if (!isCurrPos && isInBounds && !visited) {
+                    visitedPositions.set(row, col, true);
                     findAllWordsHelper(row + row_i, col + col_i, prefix,
                                        visitedPositions);
+                    visitedPositions.set(row, col, false);
+                    prefix.pop_back();
                 }
             }
         }
@@ -296,7 +309,11 @@ void Boggle::findAllWordsHelper(const int& row, const int& col, string prefix,
 
 
 
-
+/*
+ * Fråga: bättre att ha som nedan eller att ha funktionerna addToPlayerFound(const string& word) och
+ * addToCharacterFound(const string& word, set<string>& found, int& foundNum, int& score, string& foundStr)?
+ * Mindre kodupprepning som vi har nu men är det onödigt krångligt?
+ */
 
 /*
  * Inserts a word into m_playerFound and updates relevant data members.

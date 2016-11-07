@@ -103,7 +103,7 @@ public:
     /*
      * Return true if word is in board.
      */
-    bool isInBoard(string word) const;
+    bool isInBoard(const string& word) const;
 
     /*
      * Returns true if word is in m_dictionary.
@@ -112,10 +112,8 @@ public:
 
 
     /*
-     * Returns true if word is not in m_playerFound or
-     * m_NPCFound.
-     * NOTE: This function does not check if word is in
-     * m_dictionary.
+     * Returns true if word is not in m_playerFound or m_NPCFound.
+     * NOTE: This function does not check if word is in m_dictionary.
      */
     bool isNewWord(string& word) const;
 
@@ -124,7 +122,7 @@ public:
      * Inserts a word into m_playerFound and updates relevant data members.
      * Pre-condition: Word is a valid word and in upper case.
      */
-    void addToPlayerFound(string& word);
+    void addToPlayerFound(const string& word);
 
 
     /*
@@ -165,8 +163,8 @@ private:
      * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
      * traced from there.
      */
-    bool isInBoardHelper(const int& currRow, const int& currCol, string word,
-                                 map<int,set<int>>& visitedPositions) const;
+    bool isInBoardHelper(const int& currRow, const int& currCol, const string& word,
+                                 Grid<bool>& visitedPositions) const;
 
 
     /*
@@ -176,8 +174,8 @@ private:
      * prefix to another word in dictionary we continue looking for valid words
      * by moving to neighbouring letters in board.
      */
-    void findAllWordsHelper(const int& row, const int& col, string prefix,
-                                 map<int,set<int>> visitedPositions);
+    void findAllWordsHelper(const int& row, const int& col, string& prefix,
+                                 Grid<bool>& visitedPositions);
 
 };
 
