@@ -30,13 +30,6 @@ public:
 
 
     /*
-     * Constructor for pre-determined board. (For testing)
-     * Pre-condition: board must be of correct length (pow(BOARD_SIZE,2))
-     */
-    Boggle(string& board);
-
-
-    /*
      * Deconstructor.
      */
     ~Boggle();
@@ -55,24 +48,51 @@ public:
 
 
     /*
-     * Returns the string representation of the current board.
+     * Returns the current board represented in a Grid object.
      */
     Grid<char> getBoard() const;
 
 
     /*
-     * Sets the following information about the game state in the given variables:
-     * numOfWordsFound: The number of words the player has found.
-     * foundWordsStr: String representation of all words the player has found.
-     * score: Player's current score.
+     * Returns the number of words in m_playerFound.
      */
-    void setPlayerStatus(int& numOfWordsFound, string& foundWordsStr, int& score) const;
+    int getPlayerFoundNum() const;
+
+
+    /*
+     * Returns the number of words in m_NPCFound,
+     */
+    int getNPCFoundNum() const;
+
+
+    /*
+     * Returns the player score.
+     */
+    int getPlayerScore() const;
+
+
+    /*
+     * Returns the NPC score.
+     */
+    int getNPCScore() const;
+
+
+    /*
+     * Returns the string representation of m_playerFound.
+     */
+    string getPlayerFoundStr() const;
+
+
+    /*
+     * Returns the string representation of m_NPCFound.
+     */
+    string getNPCFoundStr() const;
 
 
     /*
      * Takes a string representation of board and sets it to m_boardGrid.
      */
-    void setBoard(string& board);
+    void setBoard(string board);
 
     /*
      * Returns true if word length >= MIN_WORD_LENGTH.
@@ -81,7 +101,7 @@ public:
 
 
     /*
-     * Return true if word is "in" board.
+     * Return true if word is in board.
      */
     bool isInBoard(string word) const;
 
@@ -92,19 +112,30 @@ public:
 
 
     /*
-     * Returns true if word is not in m_playerFound
+     * Returns true if word is not in m_playerFound or
+     * m_NPCFound.
      * NOTE: This function does not check if word is in
      * m_dictionary.
      */
-    bool isNewWord(const string& word) const;
+    bool isNewWord(string& word) const;
 
 
     /*
-     * Inserts a word into m_playerFound.
-     * Precondition: We assume that word fulfills every criteria to count
-     * as a valid word.
+     * Inserts a word into m_playerFound and updates relevant data members.
      */
-    void addToPlayerFound(const string& word);
+    void addToPlayerFound(string& word);
+
+
+    /*
+     * Inserts a word into m_NPCFound and updates relevant data members.
+     */
+    void addToNPCFound(string& word);
+
+
+    /*
+     * Finds all words in board that player hasn't and adds them to m_NPCFound.
+     */
+    void findAllWords();
 
 
 private:
@@ -112,37 +143,38 @@ private:
     vector<vector<string>> m_playerFound;   // Words that player has found.
     vector<vector<string>> m_NPCFound;      // Words that NPC has found.
     Lexicon m_dictionary;                   // Valid Words.
+    int m_playerFoundNum = 0;               // Number of words in m_playerFound
+    int m_NPCFoundNum = 0;                  // Number of words in m_NPCFound
+    int m_playerScore = 0;                  // Player score
+    int m_NPCScore = 0;                     // NPC score
+    string m_playerFoundStr = "{}";         // String representation of m_playerFound
+    string m_NPCFoundStr = "{}";            // String representation of m_NPCFound
 
 
     /*
-     * Sets m_boardStr to a random, valid board (string).
+     * Sets m_boardGrid to a random, valid board (Grid).
      */
     void setRandomBoard();
 
 
     /*
-     * Returns true if word can be found in board. Systematically starts from every
-     * position in m_boardGrid and checks if word can be found from there by moving
-     * in any valid direction from that starting point and finding the next letter.
-     * Uses checkNeighbours to branch to all neighbouring letters.
+     * Recursive helper that checks if the first letter in word matches the letter
+     * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
+     * traced from there.
      */
-    bool isInBoardHelper(int currRow, int currCol, string word,
+    bool isInBoardHelper(const int& currRow, const int& currCol, string word,
                                  map<int,set<int>> visitedPositions) const;
 
 
     /*
-     * Recursive helper to check if neighbouring letters match the next letter in word.
+     * Recursive helper that checks if given prefix + letter at (row,col) in
+     * m_boardGrid is a word or prefix to any word i m_dictionary.
+     * If it makes a valid word it will be added to m_ NPCFound, if it is a
+     * prefix to another word in dictionary we continue looking for valid words
+     * by moving to neighbouring letters in board.
      */
-    bool checkNeighbours(int currRow, int currCol, string word,
-                                 map<int,set<int>> visitedPositions) const;
-
-
-    /*
-     * Takes row and column number and returns a pair that represents the grid
-     * coordinates of the next position in m_boardGrid. Counts from top-left to
-     * top-right and then moves down one row and starts from left again.
-     */
-    pair<int,int> getNextPosition(int currRow, int currCol) const;
+    void findAllWordsHelper(const int& row, const int& col, string prefix,
+                                 map<int,set<int>> visitedPositions);
 
 };
 

@@ -54,15 +54,8 @@ void printBoard(const Boggle& boggle);
 
 
 /*
- * Prints the words that a player has found as well as the current score.
- */
-void printPlayerStatus(const Boggle& boggle);
-
-
-/*
  * Returns true if input fulfills certain conditions.
  * If any condition is not satisfied, an error message is printed.
- * Pre-condition: Assumes that any letters in input are upper case.
  */
 bool isValidInput(const Boggle& boggle, string& input);
 

@@ -90,7 +90,6 @@ void printBoard(const Boggle& boggle) {
 /*
  * Returns true if input fulfills certain conditions.
  * If any condition is not satisfied, an error message is printed.
- * Pre-condition: Assumes that any letters in input are upper case.
  */
 bool isValidInput(const Boggle& boggle, string& input) {
     transform(input.begin(), input.end(), input.begin(), ::toupper);
@@ -110,20 +109,6 @@ bool isValidInput(const Boggle& boggle, string& input) {
         return false;
     }
     return true;
-}
-
-
-/*
- * Prints the words that a player has found as well as the current score.
- */
-void printPlayerStatus(const Boggle& boggle) {
-    int numOfWordsFound;
-    string foundWordsStr;
-    int score;
-    boggle.setPlayerStatus(numOfWordsFound, foundWordsStr, score);
-    cout << "Your words (" << numOfWordsFound << "): " <<
-            foundWordsStr << endl <<
-            "Your score: " << score << endl;
 }
 
 
@@ -155,8 +140,9 @@ void playPlayerTurn(Boggle& boggle) {
                     boggle.addToPlayerFound(input);
                     validInput = false;
                 }
-                printPlayerStatus(boggle);
-                cout << endl;
+                cout << "Your words (" << boggle.getPlayerFoundNum() << "): " <<
+                        boggle.getPlayerFoundStr() << endl <<
+                        "Your score: " << boggle.getPlayerScore() << endl << endl;
             }
         }
     }
@@ -167,5 +153,15 @@ void playPlayerTurn(Boggle& boggle) {
  * Plays NPC's turn.
  */
 void playNPCTurn(Boggle& boggle) {
-
+    cout << "It's my turn! Watch this..." << endl;
+    boggle.findAllWords();
+    cout << "My words (" << boggle.getNPCFoundNum() << "): " <<
+            boggle.getNPCFoundStr() << endl <<
+            "My score: " << boggle.getNPCScore() << endl << endl;
+    if (boggle.getNPCScore() > boggle.getPlayerScore()) {
+        cout << "Ha ha ha, I destroyed you. Better luck next time, puny human!"
+             << endl;
+    } else {
+        cout << "...Impossible! I guess you win this time..." << endl;
+    }
 }

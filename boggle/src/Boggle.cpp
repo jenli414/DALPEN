@@ -1,9 +1,3 @@
-// This is the .cpp file you will edit and turn in.
-// We have provided a minimal skeleton for you,
-// but you must finish it as described in the spec.
-// Also remove these comments here and add your own.
-// TODO: remove this comment header and replace it with your own
-
 #include <sstream>
 #include <algorithm>
 #include <set>
@@ -33,17 +27,6 @@ Boggle::Boggle() {
 
 
 /*
- * Constructor for pre-determined board. (For testing)
- * Pre-condition: board must be of correct length (pow(BOARD_SIZE,2))
- */
-Boggle::Boggle(string& board) {
-    transform(board.begin(), board.end(), board.begin(), ::toupper);
-    setBoard(board);
-    m_boardGrid.resize(BOARD_SIZE, BOARD_SIZE);
-}
-
-
-/*
  * Deconstructor.
  */
 Boggle::~Boggle() {
@@ -54,7 +37,7 @@ Boggle::~Boggle() {
 /*
  * Prepares a new game of Boggle.
  */
-void Boggle::newGame(){
+void Boggle::newGame() {
     setRandomBoard();
     m_playerFound.clear();
     m_NPCFound.clear();
@@ -64,6 +47,12 @@ void Boggle::newGame(){
         m_playerFound.push_back(playerFoundVector);
         m_NPCFound.push_back(NPCFoundVector);
     }
+    m_playerFoundNum = 0;
+    m_NPCFoundNum = 0;
+    m_playerScore = 0;
+    m_NPCScore = 0;
+    m_playerFoundStr = "{}";
+    m_NPCFoundStr = "{}";
 }
 
 
@@ -84,36 +73,58 @@ Grid<char> Boggle::getBoard() const {
 
 
 /*
- * Sets the following information about the game state in the given variables:
- * numOfWordsFound: The number of words the player has found.
- * foundWordsStr: String representation of all words the player has found.
- * score: Player's current score.
+ * Returns the number of words in m_playerFound.
  */
-void Boggle::setPlayerStatus(int& numOfWordsFound, string& foundWordsStr, int& score) const {
-    numOfWordsFound = 0;
-    foundWordsStr = "{\"";
-    score = 0;
-    for (int i = 0; i < 26; ++i) {
-        for (vector<string>::const_iterator it = m_playerFound[i].begin(); it != m_playerFound[i].end(); ++it) {
-            numOfWordsFound++;
-            foundWordsStr += *it + "\", \"";
-            score += (*it).length() - 3;
-        }
-    }
-    if (numOfWordsFound == 0) {
-        foundWordsStr = "{}";
-    } else {
-        foundWordsStr = foundWordsStr.substr(0, foundWordsStr.size()-3);
-        foundWordsStr.append("}");
-    }
+int Boggle::getPlayerFoundNum() const {
+    return m_playerFoundNum;
+}
+
+
+/*
+ * Returns the number of words in m_NPCFound,
+ */
+int Boggle::getNPCFoundNum() const {
+    return m_NPCFoundNum;
+}
+
+
+/*
+ * Returns the player score.
+ */
+int Boggle::getPlayerScore() const {
+    return m_playerScore;
+}
+
+
+/*
+ * Returns the NPC score.
+ */
+int Boggle::getNPCScore() const {
+    return m_NPCScore;
+}
+
+
+/*
+ * Returns the string representation of m_playerFound.
+ */
+string Boggle::getPlayerFoundStr() const {
+    return m_playerFoundStr;
+}
+
+
+/*
+ * Returns the string representation of m_NPCFound.
+ */
+string Boggle::getNPCFoundStr() const {
+    return m_NPCFoundStr;
 }
 
 
 /*
  * Takes a string representation of board and sets it to m_boardGrid.
  */
-void Boggle::setBoard(string& board) {
-    transform(input.begin(), input.end(), input.begin(), ::toupper);
+void Boggle::setBoard(string board) {
+    transform(board.begin(), board.end(), board.begin(), ::toupper);
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
             m_boardGrid.set(row, col, board[col + (row * BOARD_SIZE)]);
@@ -155,18 +166,24 @@ bool Boggle::isInDictionary(const string& word) const {
 
 
 /*
- * Returns true if word is not in m_playerFound
+ * Returns true if word is not in m_playerFound or
+ * m_NPCFound.
  * NOTE: This function does not check if word is in
  * m_dictionary.
- * Precondition: Assumes that word is in upper case.
  */
-bool Boggle::isNewWord(const string& word) const {
-    for (unsigned int i = 0; i < 26; i++) {
-        for (vector<string>::const_iterator it = m_playerFound[i].begin();
-             it != m_playerFound[i].end(); ++it) {
-            if (*it == word) {
-                return false;
-            }
+bool Boggle::isNewWord(string& word) const {
+    transform(word.begin(), word.end(), word.begin(), ::toupper);
+    int index = static_cast<int>(word[0]) - 65;
+    for (vector<string>::const_iterator it = m_playerFound[index].begin();
+         it != m_playerFound[index].end(); ++it) {
+        if (*it == word) {
+            return false;
+        }
+    }
+    for (vector<string>::const_iterator it = m_NPCFound[index].begin();
+         it != m_NPCFound[index].end(); ++it) {
+        if (*it == word) {
+            return false;
         }
     }
     return true;
@@ -174,22 +191,61 @@ bool Boggle::isNewWord(const string& word) const {
 
 
 /*
- * Inserts a word into m_playerFound.
- * Precondition: We assume that word fulfills every criteria to count
- * as a valid word as well as being upper case.
+ * Inserts a word into m_playerFound and updates relevant data members.
  */
-void Boggle::addToPlayerFound(const string& word) {
+void Boggle::addToPlayerFound(string& word) {
+    transform(word.begin(), word.end(), word.begin(), ::toupper);
     int index = static_cast<int>(word[0]) - 65;
     m_playerFound[index].push_back(word);
+    m_playerFoundNum++;
+    m_playerScore += word.length() - 3;
+    if (m_playerFoundNum == 1) {
+        m_playerFoundStr = "{" + word + "}";
+    } else {
+        m_playerFoundStr.pop_back();
+        m_playerFoundStr += ", " + word + "}";
+    }
 }
 
 
 /*
- * Takes a string and sets it to a random, valid board.
+ * Inserts a word into m_NPCFound and updates relevant data members.
+ */
+void Boggle::addToNPCFound(string& word) {
+    transform(word.begin(), word.end(), word.begin(), ::toupper);
+    int index = static_cast<int>(word[0]) - 65;
+    m_NPCFound[index].push_back(word);
+    m_NPCFoundNum++;
+    m_NPCScore += word.length() - 3;
+    if (m_NPCFoundNum == 1) {
+        m_NPCFoundStr = "{" + word + "}";
+    } else {
+        m_NPCFoundStr.pop_back();
+        m_NPCFoundStr += ", " + word + "}";
+    }
+}
+
+
+/*
+ * Finds all words in board that player hasn't and adds them to m_NPCFound.
+ */
+void Boggle::findAllWords() {
+    map<int,set<int>> visitedPositions;
+    string prefix = "";
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        for (int col = 0; col < BOARD_SIZE; ++col) {
+            findAllWordsHelper(row, col, prefix, visitedPositions);
+        }
+    }
+}
+
+
+/*
+ * Sets m_boardGrid to a random, valid board (Grid).
  */
 void Boggle::setRandomBoard() {
-    string board = "";                                          // Resets m_boardStr.
-    shuffle(CUBES, NUM_CUBES);                                  // Shuffles CUBES.
+    string board = "";
+    shuffle(CUBES, NUM_CUBES);
     random_device rd;                                           // Get random num from hardware.
     mt19937 eng(rd());                                          // Seed the generator.
     for (unsigned int i = 0; i < NUM_CUBES; ++i) {
@@ -201,11 +257,11 @@ void Boggle::setRandomBoard() {
 
 
 /*
- * Recursive helper that checks if the first letter in word is a match with
- * the letter in (row,col) in grid and if so, checks if the rest of the word
- * can be traced from there.
+ * Recursive helper that checks if the first letter in word matches the letter
+ * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
+ * traced from there.
  */
-bool Boggle::isInBoardHelper(int row, int col, string word,
+bool Boggle::isInBoardHelper(const int& row, const int& col, string word,
                              map<int,set<int>> visitedPositions) const {
     bool isMatch = word[0] == m_boardGrid.get(row, col);
     bool notVisited = visitedPositions[row].count(col) == 0;
@@ -233,9 +289,44 @@ bool Boggle::isInBoardHelper(int row, int col, string word,
     }
 }
 
+
+/*
+ * Recursive helper that checks if given prefix + letter at (row,col) in
+ * m_boardGrid is a word or prefix to any word i m_dictionary.
+ * If it makes a valid word it will be added to m_ NPCFound, if it is a
+ * prefix to another word in dictionary we continue looking for valid words
+ * by moving to neighbouring letters in board.
+ */
+void Boggle::findAllWordsHelper(const int& row, const int& col, string prefix,
+                             map<int,set<int>> visitedPositions) {
+    bool notVisited = visitedPositions[row].count(col) == 0;
+    if (notVisited) {
+        string newPrefix = prefix + m_boardGrid.get(row,col);
+        bool isValidWord = isValidLength(newPrefix) &&
+                isInDictionary(newPrefix) && isNewWord(newPrefix);
+        bool morePossibleWords = m_dictionary.containsPrefix(newPrefix);
+        if (isValidWord) {
+            addToNPCFound(newPrefix);
+        } if (morePossibleWords) {
+            visitedPositions[row].insert(col);
+            for (int row_i = -1; row_i <= 1; ++row_i) {
+                for (int col_i = -1; col_i <= 1; ++col_i) {
+                    bool isCurrPosition = row_i == 0 && col_i == 0;
+                    bool isInBounds = m_boardGrid.inBounds(
+                                row + row_i, col + col_i);
+                    if (!isCurrPosition && isInBounds) {
+                        findAllWordsHelper(row + row_i, col + col_i, newPrefix,
+                                           visitedPositions);
+                    }
+                }
+            }
+        }
+    }
+}
+
 /*
  * VARNING: Jennifer ansvarar inte för eventuella hjärnskador som kan uppstå som en följd av
- * studerande av följande kod. Hon vill dock poängtera att den på nåt vänster fungerar.
+ * betraktande utav följande kod. Hon vill dock poängtera att den på nåt vänster fungerar.
  * Slut på varningsmeddelande.
  */
 
