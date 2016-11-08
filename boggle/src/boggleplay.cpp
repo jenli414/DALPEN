@@ -7,6 +7,14 @@
 #include "bogglemain.h"
 #include "strlib.h"
 
+
+string getBoardInput(const Boggle& boggle);
+void printBoard(const Boggle& boggle);
+void playPlayerTurn(Boggle& boggle);
+bool isValidInput(const Boggle& boggle, string& input);
+void playNPCTurn(Boggle& boggle);
+
+
 /*
  * Plays one game of Boggle using the given boggle game state object.
  */
@@ -15,6 +23,8 @@ void playOneGame(Boggle& boggle) {
     boggle.newGame();
     if (yesOrNo("Would you like to enter a pre-detemined board? (Y/N): ")) {
         boggle.setBoard(getBoardInput(boggle));
+    } else {
+        boggle.setRandomBoard();
     }
     clearConsole();
     printBoard(boggle);
@@ -78,9 +88,39 @@ void printBoard(const Boggle& boggle) {
     cout << endl;
     for (int row = 0; row < boggle.BOARD_SIZE; ++row) {
         for (int col = 0; col < boggle.BOARD_SIZE; ++col) {
-            cout << board.get(row, col) << " ";
+            cout << " " << board.get(row, col);
         }
         cout << endl;
+    }
+}
+
+
+/*
+ * Asks the user to input words and gives error messages upon recieving invalid
+ * such until the user only presses enter to end their turn.
+ * Lets boggle handle the input if it's valid.
+ */
+void playPlayerTurn(Boggle& boggle) {
+    cout << "Your turn!" << endl;
+    string input;
+    while (true) {
+        cout << "Type a valid word or press enter to end your turn: ";
+        getline(cin, input);
+        if (input.empty()) {
+            cout << endl;
+            break;
+        } else {
+            clearConsole();
+            printBoard(boggle);
+            cout << endl;
+            if (isValidInput(boggle, input)) {
+                cout << "You found a new word: " << input << "!" << endl;
+                boggle.addToPlayerFound(input);
+            }
+            cout << "Your words (" << boggle.getPlayerFoundNum() << "): " <<
+                    boggle.getPlayerFoundStr() << endl <<
+                    "Your score: " << boggle.getPlayerScore() << endl << endl;
+        }
     }
 }
 
@@ -99,51 +139,14 @@ bool isValidInput(const Boggle& boggle, string& input) {
     } else if (!boggle.isInDictionary(input)) {
                 cout << "Sorry, \"" << input << "\" is not in the dictionary!" << endl;
                 return false;
-    } else if (!boggle.isInBoard(input)) {
-        cout << "Sorry, couldn't find \"" << input << "\" in board!" << endl;
-        return false;
     } else if (!boggle.isNewWord(input)) {
         cout << "Sorry, looks like you already found \"" << input << "\"!" << endl;
         return false;
+    } else if (!boggle.isInBoard(input)) {
+        cout << "Sorry, couldn't find \"" << input << "\" in board!" << endl;
+        return false;
     }
     return true;
-}
-
-
-/*
- * Asks the user to input words and gives error messages upon recieving invalid
- * such until the user only presses enter to end their turn.
- * Lets boggle handle the input if it's valid.
- */
-void playPlayerTurn(Boggle& boggle) {
-    cout << "Your turn!" << endl;
-    bool endTurn = false;
-    bool validInput = false;
-    string input;
-    while (!endTurn) {
-        while (!validInput) {
-            cout << "Type a valid word or press enter to end your turn: ";
-            getline(cin, input);
-            if (input.empty()) {
-                cout << endl;
-                validInput = true;
-                endTurn = true;
-            } else {
-                clearConsole();
-                printBoard(boggle);
-                cout << endl;
-                validInput = isValidInput(boggle, input);
-                if (validInput) {
-                    cout << "You found a new word: " << input << "!" << endl;
-                    boggle.addToPlayerFound(input);
-                    validInput = false;
-                }
-                cout << "Your words (" << boggle.getPlayerFoundNum() << "): " <<
-                        boggle.getPlayerFoundStr() << endl <<
-                        "Your score: " << boggle.getPlayerScore() << endl << endl;
-            }
-        }
-    }
 }
 
 
@@ -163,3 +166,5 @@ void playNPCTurn(Boggle& boggle) {
         cout << "...Impossible! I guess you win this time..." << endl;
     }
 }
+
+

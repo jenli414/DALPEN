@@ -34,44 +34,9 @@ void playOneGame(Boggle& boggle);
 
 
 /*
- * Prompts the user for board input. Prints error messages if input either
- * contains characters apart from A-Z (case-insensitively) or if the input
- * isn't of the correct length. Returns valid valid input in upper case.
- */
-string getBoardInput(const Boggle& boggle);
-
-
-/*
  * Erases all currently visible text from the output console.
  */
 void clearConsole();
-
-
-/*
- * Prints current board.
- */
-void printBoard(const Boggle& boggle);
-
-
-/*
- * Returns true if input fulfills certain conditions.
- * If any condition is not satisfied, an error message is printed.
- */
-bool isValidInput(const Boggle& boggle, string& input);
-
-
-/*
- * Asks the user to input words and gives error messages upon recieving invalid
- * such until the user only presses enter to end their turn.
- * Lets boggle handle the input if it's valid.
- */
-void playPlayerTurn(Boggle& boggle);
-
-
-/*
- * Plays NPC's turn.
- */
-void playNPCTurn(Boggle& boggle);
 
 
 #endif

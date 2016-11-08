@@ -1,7 +1,6 @@
 #include <sstream>
 #include <algorithm>
 #include <set>
-#include <set>
 #include "Boggle.h"
 #include "random.h"
 #include "shuffle.h"
@@ -43,7 +42,6 @@ Boggle::~Boggle() {
  * Prepares a new game of Boggle.
  */
 void Boggle::newGame() {
-    setRandomBoard();
     m_playerFound.clear();
     m_NPCFound.clear();
     m_playerFoundNum = 0;
@@ -56,10 +54,39 @@ void Boggle::newGame() {
 
 
 /*
+ * Takes a string representation of board and sets it to m_boardGrid.
+ */
+void Boggle::setBoard(string board) {
+    transform(board.begin(), board.end(), board.begin(), ::toupper);
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        for (int col = 0; col < BOARD_SIZE; ++col) {
+            m_boardGrid.set(row, col, board[col + (row * BOARD_SIZE)]);
+        }
+    }
+}
+
+
+/*
+ * Sets m_boardGrid to a random, valid board (Grid).
+ */
+void Boggle::setRandomBoard() {
+    string board = "";
+    shuffle(CUBES, NUM_CUBES);
+    random_device rd;                                           // Get random num from hardware.
+    mt19937 eng(rd());                                          // Seed the generator.
+    for (unsigned int i = 0; i < NUM_CUBES; ++i) {
+        uniform_int_distribution<> distr(0,(CUBE_SIDES - 1));   // Define the range (inclusive).
+        board += CUBES[i][distr(eng)];                          // Generates a number and adds new letter to board.
+    }
+    setBoard(board);
+}
+
+
+/*
  * Returns the number of letters in a valid board.
  */
 int Boggle::getNumOfLettersReq() const {
-    return pow(BOARD_SIZE,2);
+    return NUM_CUBES;
 }
 
 
@@ -116,19 +143,6 @@ string Boggle::getPlayerFoundStr() const {
  */
 string Boggle::getNPCFoundStr() const {
     return m_NPCFoundStr;
-}
-
-
-/*
- * Takes a string representation of board and sets it to m_boardGrid.
- */
-void Boggle::setBoard(string board) {
-    transform(board.begin(), board.end(), board.begin(), ::toupper);
-    for (int row = 0; row < BOARD_SIZE; ++row) {
-        for (int col = 0; col < BOARD_SIZE; ++col) {
-            m_boardGrid.set(row, col, board[col + (row * BOARD_SIZE)]);
-        }
-    }
 }
 
 
@@ -214,22 +228,6 @@ void Boggle::findAllWords() {
 
 
 /*
- * Sets m_boardGrid to a random, valid board (Grid).
- */
-void Boggle::setRandomBoard() {
-    string board = "";
-    shuffle(CUBES, NUM_CUBES);
-    random_device rd;                                           // Get random num from hardware.
-    mt19937 eng(rd());                                          // Seed the generator.
-    for (unsigned int i = 0; i < NUM_CUBES; ++i) {
-        uniform_int_distribution<> distr(0,(CUBE_SIDES - 1));   // Define the range (inclusive).
-        board += CUBES[i][distr(eng)];                          // Generates a number and adds new letter to board.
-    }
-    setBoard(board);
-}
-
-
-/*
  * Recursive helper that checks if the first letter in word matches the letter
  * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
  * traced from there.
@@ -241,10 +239,11 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word)
     } else if (isMatch) {
         for (int row_i = -1; row_i <= 1; ++row_i) {
             for (int col_i = -1; col_i <= 1; ++col_i) {
+                bool isCurrPos = row_i == 0 && col_i == 0;
                 bool isInBounds = m_boardGrid.inBounds(
                             row + row_i, col + col_i);
                 bool isVisited = VISITED_POSITIONS[row + row_i].count(col + col_i);
-                if (isInBounds && !isVisited) {
+                if (!isCurrPos && isInBounds && !isVisited) {
                     VISITED_POSITIONS[row].insert(col);
                     if (isInBoardHelper(row + row_i, col + col_i,
                                         word.substr(1, word.size() - 1))) {

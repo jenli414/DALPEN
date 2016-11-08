@@ -42,6 +42,18 @@ public:
 
 
     /*
+     * Takes a string representation of board and sets it to m_boardGrid.
+     */
+    void setBoard(string board);
+
+
+    /*
+     * Sets m_boardGrid to a random, valid board (Grid).
+     */
+    void setRandomBoard();
+
+
+    /*
      * Returns the number of letters in a valid board.
      */
     int getNumOfLettersReq() const;
@@ -90,11 +102,6 @@ public:
 
 
     /*
-     * Takes a string representation of board and sets it to m_boardGrid.
-     */
-    void setBoard(string board);
-
-    /*
      * Returns true if word length >= MIN_WORD_LENGTH.
      */
     bool isValidLength(const string& word) const;
@@ -140,22 +147,16 @@ public:
 
 
 private:
-    Grid<char> m_boardGrid;                 // Current board represented as a grid.
-    set<string> m_playerFound;              // Words that player has found.
-    set<string> m_NPCFound;                 // Words that NPC has found.
-    Lexicon m_dictionary;                   // Valid Words.
-    int m_playerFoundNum = 0;               // Number of words in m_playerFound
-    int m_NPCFoundNum = 0;                  // Number of words in m_NPCFound
-    int m_playerScore = 0;                  // Player score
-    int m_NPCScore = 0;                     // NPC score
-    string m_playerFoundStr = "{}";         // String representation of m_playerFound
-    string m_NPCFoundStr = "{}";            // String representation of m_NPCFound
-
-
-    /*
-     * Sets m_boardGrid to a random, valid board (Grid).
-     */
-    void setRandomBoard();
+    Grid<char> m_boardGrid;         // Current board represented as a grid.
+    set<string> m_playerFound;      // Words that player has found.
+    set<string> m_NPCFound;         // Words that NPC has found.
+    Lexicon m_dictionary;           // Valid Words.
+    int m_playerFoundNum;           // Number of words in m_playerFound
+    int m_NPCFoundNum;              // Number of words in m_NPCFound
+    int m_playerScore;              // Player score
+    int m_NPCScore;                 // NPC score
+    string m_playerFoundStr;        // String representation of m_playerFound
+    string m_NPCFoundStr;           // String representation of m_NPCFound
 
 
     /*
