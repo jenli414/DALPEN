@@ -20,7 +20,8 @@ void TileList::addTile(Tile tile)
 }
 
 
-void TileList::checkExpand() {
+void TileList::checkExpand()
+{
     if (m_occupied == m_capacity) {
         Tile* expandedTileList = new Tile[m_capacity * 2];
         for (int i = 0; i < m_capacity; i++) {
@@ -33,7 +34,7 @@ void TileList::checkExpand() {
 }
 
 
-void TileList::drawAll(QGraphicsScene* scene)
+void TileList::drawAll(QGraphicsScene* scene) const
 {
     for (int i = 0; i < m_occupied; i++){
         m_tileList[i].draw(scene);
@@ -41,9 +42,9 @@ void TileList::drawAll(QGraphicsScene* scene)
 }
 
 
-int TileList::indexOfTopTile(int x, int y)
+int TileList::indexOfTopTile(const int& x, const int& y) const
 {
-    for (int i = m_occupied-1; i >=0; i--) {
+    for (int i = m_occupied-1; i >= 0; i--) {
        if (m_tileList[i].contains(x,y)) {
            return i;
         }
@@ -52,7 +53,7 @@ int TileList::indexOfTopTile(int x, int y)
 }
 
 
-void TileList::raise(int x, int y)
+void TileList::raise(const int& x, const int& y)
 {
     int index = indexOfTopTile(x,y);
     if (index != -1) {
@@ -61,7 +62,7 @@ void TileList::raise(int x, int y)
 }
 
 
-void TileList::lower(int x, int y)
+void TileList::lower(const int& x, const int& y)
 {
     int index = indexOfTopTile(x,y);
     if (index != -1) {
@@ -74,7 +75,7 @@ void TileList::lower(int x, int y)
 }
 
 
-void TileList::remove(int x, int y)
+void TileList::remove(const int& x, const int& y)
 {
     int index = indexOfTopTile(x,y);
     if (index != -1) {
@@ -92,7 +93,7 @@ Tile TileList::removeTile(const int& index) {
     return removedTile;
 }
 
-void TileList::removeAll(int x, int y)
+void TileList::removeAll(const int& x, const int& y)
 {
     int index = indexOfTopTile(x,y);
     while (index != -1) {

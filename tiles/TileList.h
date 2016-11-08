@@ -35,28 +35,28 @@ public:
     /*
      * Draws all tiles by calling each tile's draw-function.
      */
-    void drawAll(QGraphicsScene* scene);
+    void drawAll(QGraphicsScene* scene) const;
 
     /*
      * Returns the index of the top tile that covers the coordinates (x,y),
      * if none, returns -1.
      */
-    int indexOfTopTile(int x, int y);
+    int indexOfTopTile(const int& x, const int& y) const;
 
     /*
      * Puts the top tile that covers (x,y) at the bottom, if none, do nothing.
      */
-    void lower(int x, int y);
+    void lower(const int& x, const int& y);
 
     /*
      * Puts the top tile that covers (x,y) on top, if none, do nothing.
      */
-    void raise(int x, int y);
+    void raise(const int& x, const int& y);
 
     /*
      * Remove the top tile that covers (x,y), if none, do nothing.
      */
-    void remove(int x, int y);
+    void remove(const int& x, const int& y);
 
     /*
      * Removes and returns the tile at given index in the tile list.
@@ -66,7 +66,7 @@ public:
     /*
      * Removes all tiles that cover (x,y), if none, do nothing.
      */
-    void removeAll(int x, int y);
+    void removeAll(const int& x, const int& y);
 
 private:
     int m_capacity = 10;                        // Tile list maximum capacity.
