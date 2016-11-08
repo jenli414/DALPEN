@@ -163,8 +163,8 @@ private:
      * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
      * traced from there.
      */
-    bool isInBoardHelper(const int& currRow, const int& currCol, const string& word,
-                                 Grid<bool>& visitedPositions) const;
+    bool isInBoardHelper(const int& currRow, const int& currCol,
+                         const string& word) const;
 
 
     /*
@@ -174,8 +174,7 @@ private:
      * prefix to another word in dictionary we continue looking for valid words
      * by moving to neighbouring letters in board.
      */
-    void findAllWordsHelper(const int& row, const int& col, string& prefix,
-                                 Grid<bool>& visitedPositions);
+    void findAllWordsHelper(const int& row, const int& col, string& prefix);
 
 };
 

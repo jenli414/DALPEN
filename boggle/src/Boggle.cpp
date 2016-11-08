@@ -1,6 +1,7 @@
 #include <sstream>
 #include <algorithm>
 #include <set>
+#include <set>
 #include "Boggle.h"
 #include "random.h"
 #include "shuffle.h"
@@ -18,8 +19,7 @@ static string CUBES[NUM_CUBES] = {        // the letters on all 6 sides of every
  * VISITED_POSITIONS is used to keep track of already visited letters when looking
  * for player and NPC words in board.
  */
-static Grid<bool> VISITED_POSITIONS;
-
+static map<int, set<int>> VISITED_POSITIONS;
 
 /*
  * Constructor.
@@ -28,12 +28,6 @@ Boggle::Boggle() {
     Lexicon dictionary(DICTIONARY_FILE);
     m_dictionary = dictionary;
     m_boardGrid.resize(BOARD_SIZE, BOARD_SIZE);
-    VISITED_POSITIONS.resize(BOARD_SIZE, BOARD_SIZE);
-    for (int row = 0; row < BOARD_SIZE; ++row) {
-        for (int col = 0; col < BOARD_SIZE; ++col) {
-            VISITED_POSITIONS.set(row, col, false);
-        }
-    }
 }
 
 
@@ -152,7 +146,7 @@ bool Boggle::isValidLength(const string& word) const {
 bool Boggle::isInBoard(const string& word) const {
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
-            if (isInBoardHelper(row, col, word, VISITED_POSITIONS)) {
+            if (isInBoardHelper(row, col, word)) {
                 return true;
             }
         }
@@ -213,7 +207,7 @@ void Boggle::findAllWords() {
     string prefix = "";
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
-            findAllWordsHelper(row, col, prefix, VISITED_POSITIONS);
+            findAllWordsHelper(row, col, prefix);
         }
     }
 }
@@ -240,8 +234,7 @@ void Boggle::setRandomBoard() {
  * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
  * traced from there.
  */
-bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word,
-                             Grid<bool>& visitedPositions) const {
+bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word) const {
     bool isMatch = word[0] == m_boardGrid.get(row, col);
     if (word.length() == 1) {
         return isMatch;
@@ -250,17 +243,15 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word,
             for (int col_i = -1; col_i <= 1; ++col_i) {
                 bool isInBounds = m_boardGrid.inBounds(
                             row + row_i, col + col_i);
-                bool visited = isInBounds &&
-                        visitedPositions.get(row + row_i, col + col_i);
-                if (isInBounds && !visited) {
-                    visitedPositions.set(row, col, true);
+                bool isVisited = VISITED_POSITIONS[row + row_i].count(col + col_i);
+                if (isInBounds && !isVisited) {
+                    VISITED_POSITIONS[row].insert(col);
                     if (isInBoardHelper(row + row_i, col + col_i,
-                                        word.substr(1, word.size() - 1),
-                                        visitedPositions)) {
-                        visitedPositions.set(row, col, false);
+                                        word.substr(1, word.size() - 1))) {
+                        VISITED_POSITIONS[row].erase(col);
                         return true;
                     }
-                    visitedPositions.set(row, col, false);
+                    VISITED_POSITIONS[row].erase(col);
                 }
             }
         }
@@ -278,8 +269,7 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word,
  * prefix to another word in dictionary we continue looking for valid words
  * by moving to neighbouring letters in board.
  */
-void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
-                             Grid<bool>& visitedPositions) {
+void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix) {
     prefix += m_boardGrid.get(row,col);
     bool isValidWord = isValidLength(prefix) &&
             isInDictionary(prefix) && isNewWord(prefix);
@@ -291,13 +281,11 @@ void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
             for (int col_i = -1; col_i <= 1; ++col_i) {
                 bool isCurrPos = row_i == 0 && col_i == 0;
                 bool isInBounds = m_boardGrid.inBounds(row + row_i, col + col_i);
-                bool visited = isInBounds &&
-                        visitedPositions.get(row + row_i, col + col_i);
-                if (!isCurrPos && isInBounds && !visited) {
-                    visitedPositions.set(row, col, true);
-                    findAllWordsHelper(row + row_i, col + col_i, prefix,
-                                       visitedPositions);
-                    visitedPositions.set(row, col, false);
+                bool isVisited = VISITED_POSITIONS[row + row_i].count(col + col_i);
+                if (!isCurrPos && isInBounds && !isVisited) {
+                    VISITED_POSITIONS[row].insert(col);
+                    findAllWordsHelper(row + row_i, col + col_i, prefix);
+                    VISITED_POSITIONS[row].erase(col);
                 }
             }
         }
