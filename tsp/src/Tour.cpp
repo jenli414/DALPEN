@@ -24,7 +24,7 @@ Tour::~Tour()
 }
 
 
-void Tour::show()
+void Tour::show() const
 {
     if (m_firstNode != nullptr) {
         Node* currNode = m_firstNode->next;
@@ -38,7 +38,7 @@ void Tour::show()
 }
 
 
-void Tour::draw(QGraphicsScene* scene)
+void Tour::draw(QGraphicsScene* scene) const
 {
     if (m_firstNode != nullptr) {
         m_firstNode->point.draw(scene);
@@ -54,7 +54,7 @@ void Tour::draw(QGraphicsScene* scene)
 }
 
 
-int Tour::size()
+int Tour::size() const
 {
     if (m_firstNode == nullptr) {
         return 0;
@@ -70,7 +70,7 @@ int Tour::size()
 }
 
 
-double Tour::distance()
+double Tour::distance() const
 {
     if (m_firstNode == nullptr) {
         return 0;
@@ -88,7 +88,7 @@ double Tour::distance()
 }
 
 
-void Tour::insertNearest(Point p)
+void Tour::insertNearest(const Point& p)
 {
     Node* newNode = new Node(p);
     if (m_firstNode == nullptr) {
@@ -113,7 +113,7 @@ void Tour::insertNearest(Point p)
 }
 
 
-void Tour::insertSmallest(Point p)
+void Tour::insertSmallest(const Point& p)
 {
     Node* newNode = new Node(p);
     if (m_firstNode == nullptr) {

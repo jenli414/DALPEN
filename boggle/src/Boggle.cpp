@@ -279,7 +279,7 @@ void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
             isInDictionary(prefix) && isNewWord(prefix);
     if (isValidWord) {
         addToCharacterFound(prefix, m_NPCFound, m_NPCFoundNum,
-                          set<string>  m_NPCScore, m_NPCFoundStr);
+                            m_NPCScore, m_NPCFoundStr);
     } if (m_dictionary.containsPrefix(prefix)) {
         for (int row_i = -1; row_i <= 1; ++row_i) {
             for (int col_i = -1; col_i <= 1; ++col_i) {
