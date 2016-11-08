@@ -14,18 +14,7 @@ GameState::GameState(){}
 
 
 GameState::~GameState() {
-    int numberOfRobots = robots.size();
-    for (int i = 0; i < numberOfRobots; i++) {
-        delete robots[i];
-    }
-    robots.clear();
-    //Hero* heroPtr = &hero;
-    //delete heroPtr;
-}
-
-GameState::GameState(const GameState& gameState) {
-    robots = gameState.robots;
-    hero = gameState.hero;
+    destructHelper();
 }
 
 
@@ -41,11 +30,38 @@ GameState::GameState(int numberOfRobots) {
     teleportHero();
 }
 
+
+GameState::GameState(const GameState& gameState) {
+    copyHelper(gameState);
+}
+
+
 GameState& GameState::operator=(const GameState& gameState) {
-    robots = gameState.robots;
-    hero = gameState.hero;
+    if (this != &gameState) {
+        destructHelper();
+        copyHelper(gameState);
+    }
     return *this;
 }
+
+void GameState::copyHelper(const GameState& gameState) {
+    hero = gameState.hero;
+    int robotSize = gameState.robots.size();
+    for (int i = 0; i < robotSize; i++){
+        Robot* robotPtr = new Robot(*gameState.robots[i]);
+    robots.push_back(robotPtr);
+    }
+}
+
+
+void GameState::destructHelper() {
+    int numberOfRobots = robots.size();
+    for (int i = 0; i < numberOfRobots; i++) {
+        delete robots[i];
+    }
+    robots.clear();
+}
+
 
 void GameState::draw(QGraphicsScene *scene) const {
     scene->clear();

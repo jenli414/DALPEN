@@ -1,8 +1,6 @@
-// This is the .h file you will edit and turn in.
-// We have provided a minimal skeleton for you,
-// but you must finish it as described in the spec.
-// Also remove these comments here and add your own, as well as on the members.
-// TODO: remove this comment header and replace it with your own
+/*
+ * jenli414 och sabse455
+ */
 
 #ifndef _boggle_h
 #define _boggle_h
@@ -60,7 +58,7 @@ public:
 
 
     /*
-     * Returns the current board represented in a Grid object.
+     * Returns the current boarmap<int, set<int>>& visitedPositionsd represented in a Grid object.
      */
     Grid<char> getBoard() const;
 
@@ -165,7 +163,7 @@ private:
      * traced from there.
      */
     bool isInBoardHelper(const int& currRow, const int& currCol,
-                         const string& word) const;
+                         const string& word, map<int,set<int>>& visitedPositions) const;
 
 
     /*
@@ -175,7 +173,8 @@ private:
      * prefix to another word in dictionary we continue looking for valid words
      * by moving to neighbouring letters in board.
      */
-    void findAllWordsHelper(const int& row, const int& col, string& prefix);
+    void findAllWordsHelper(const int& row, const int& col, string& prefix,
+                            map<int,set<int>>& visitedPositions);
 
 };
 

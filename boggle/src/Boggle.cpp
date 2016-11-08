@@ -1,3 +1,7 @@
+/*
+ * jenli414 och sabse455
+ */
+
 #include <sstream>
 #include <algorithm>
 #include <set>
@@ -14,11 +18,7 @@ static string CUBES[NUM_CUBES] = {        // the letters on all 6 sides of every
    "DISTTY", "EEGHNW", "EEINSU", "EHRTVW",
    "EIOSST", "ELRTTY", "HIMNQU", "HLNNRZ"
 };
-/*
- * VISITED_POSITIONS is used to keep track of already visited letters when looking
- * for player and NPC words in board.
- */
-static map<int, set<int>> VISITED_POSITIONS;
+
 
 /*
  * Constructor.
@@ -158,9 +158,10 @@ bool Boggle::isValidLength(const string& word) const {
  * Returns true if given word is in board.
  */
 bool Boggle::isInBoard(const string& word) const {
+    map<int, set<int>> visitedPositions;
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
-            if (isInBoardHelper(row, col, word)) {
+            if (isInBoardHelper(row, col, word, visitedPositions)) {
                 return true;
             }
         }
@@ -215,13 +216,14 @@ void Boggle::addToCharacterFound(const string& word, set<string>& found,
 
 
 /*
- * Finds all words in board that player hasn't and adds them to m_NPCFound.
+ * Finds all words in boarset<string>d that player hasn't and adds them to m_NPCFound.
  */
 void Boggle::findAllWords() {
+    map<int, set<int>> visitedPositions;
     string prefix = "";
     for (int row = 0; row < BOARD_SIZE; ++row) {
         for (int col = 0; col < BOARD_SIZE; ++col) {
-            findAllWordsHelper(row, col, prefix);
+            findAllWordsHelper(row, col, prefix, visitedPositions);
         }
     }
 }
@@ -232,7 +234,8 @@ void Boggle::findAllWords() {
  * in (row,col) in m_boardGrid and if so, checks if the rest of the word can be
  * traced from there.
  */
-bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word) const {
+bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word,
+                             map<int,set<int>>& visitedPositions) const {
     bool isMatch = word[0] == m_boardGrid.get(row, col);
     if (word.length() == 1) {
         return isMatch;
@@ -242,15 +245,16 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word)
                 bool isCurrPos = row_i == 0 && col_i == 0;
                 bool isInBounds = m_boardGrid.inBounds(
                             row + row_i, col + col_i);
-                bool isVisited = VISITED_POSITIONS[row + row_i].count(col + col_i);
+                bool isVisited = visitedPositions[row + row_i].count(col + col_i);
                 if (!isCurrPos && isInBounds && !isVisited) {
-                    VISITED_POSITIONS[row].insert(col);
+                    visitedPositions[row].insert(col);
                     if (isInBoardHelper(row + row_i, col + col_i,
-                                        word.substr(1, word.size() - 1))) {
-                        VISITED_POSITIONS[row].erase(col);
+                                        word.substr(1, word.size() - 1),
+                                        visitedPositions)) {
+                        visitedPositions[row].erase(col);
                         return true;
                     }
-                    VISITED_POSITIONS[row].erase(col);
+                    visitedPositions[row].erase(col);
                 }
             }
         }
@@ -268,67 +272,27 @@ bool Boggle::isInBoardHelper(const int& row, const int& col, const string& word)
  * prefix to another word in dictionary we continue looking for valid words
  * by moving to neighbouring letters in board.
  */
-void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix) {
+void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
+                                map<int,set<int>>& visitedPositions) {
     prefix += m_boardGrid.get(row,col);
     bool isValidWord = isValidLength(prefix) &&
             isInDictionary(prefix) && isNewWord(prefix);
     if (isValidWord) {
         addToCharacterFound(prefix, m_NPCFound, m_NPCFoundNum,
-                            m_NPCScore, m_NPCFoundStr);
+                          set<string>  m_NPCScore, m_NPCFoundStr);
     } if (m_dictionary.containsPrefix(prefix)) {
         for (int row_i = -1; row_i <= 1; ++row_i) {
             for (int col_i = -1; col_i <= 1; ++col_i) {
                 bool isCurrPos = row_i == 0 && col_i == 0;
                 bool isInBounds = m_boardGrid.inBounds(row + row_i, col + col_i);
-                bool isVisited = VISITED_POSITIONS[row + row_i].count(col + col_i);
+                bool isVisited = visitedPositions[row + row_i].count(col + col_i);
                 if (!isCurrPos && isInBounds && !isVisited) {
-                    VISITED_POSITIONS[row].insert(col);
-                    findAllWordsHelper(row + row_i, col + col_i, prefix);
-                    VISITED_POSITIONS[row].erase(col);
+                    visitedPositions[row].insert(col);
+                    findAllWordsHelper(row + row_i, col + col_i, prefix, visitedPositions);
+                    visitedPositions[row].erase(col);
                 }
             }
         }
     }
     prefix.pop_back();
 }
-
-
-
-/*
- * Fråga: bättre att ha som nedan eller att ha funktionerna addToPlayerFound(const string& word) och
- * addToCharacterFound(const string& word, set<string>& found, int& foundNum, int& score, string& foundStr)?
- * Mindre kodupprepning som vi har nu men är det onödigt krångligt?
- */
-
-/*
- * Inserts a word into m_playerFound and updates relevant data members.
- * Pre-condition: Word is a valid word and in upper case.
- */
-/*void Boggle::addToPlayerFound(string& word) {
-    m_playerFound.insert(word);
-    m_playerFoundNum++;
-    m_playerScore += word.length() - 3;
-    if (m_playerFoundNum == 1) {
-        m_playerFoundStr = "{" + word + "}";
-    } else {
-        m_playerFoundStr.pop_back();
-        m_playerFoundStr += ", " + word + "}";
-    }
-}*/
-
-
-/*
- * Inserts a word into m_NPCFound and updates relevant data members.
- * Pre-condition: Word is a valid word and in upper case.
- */
-/*void Boggle::addToNPCFound(string& word) {
-    m_NPCFound.insert(word);
-    m_NPCFoundNum++;
-    m_NPCScore += word.length() - 3;
-    if (m_NPCFoundNum == 1) {
-        m_NPCFoundStr = "{" + word + "}";
-    } else {
-        m_NPCFoundStr.pop_back();
-        m_NPCFoundStr += ", " + word + "}";
-    }
-}*/

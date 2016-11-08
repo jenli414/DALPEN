@@ -29,6 +29,18 @@ public:
 
     GameState& operator =(const GameState& gameState);
 
+
+    /*
+     * Copies the given gameState to this gameState
+     */
+    void copyHelper(const GameState& gameState);
+
+
+    /*
+     * acts as a destroctor for the object
+     */
+    void destructHelper();
+
     /*
      * Clear and redraw entire playing field
      */
@@ -77,7 +89,7 @@ public:
 
 private:
     std::vector<Robot*> robots;  // the robots
-    Hero hero;                  // the hero
+    Hero hero;                   // the hero
 
     // private helpers
     bool isEmpty(const Unit& unit) const;
