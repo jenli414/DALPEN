@@ -12,15 +12,14 @@ Tour::Tour() {}
 
 Tour::~Tour()
 {
-    int tourSize = size();
-    Node* currNode = m_firstNode;
+    Node* currNode;
     Node* nextNode = m_firstNode->next;
-    for (int i = 0; i < tourSize - 1; i++) {
-        delete currNode;
+    delete m_firstNode;
+    while (nextNode != m_firstNode) {
         currNode = nextNode;
         nextNode = currNode->next;
+        delete currNode;
     }
-    delete currNode;
 }
 
 

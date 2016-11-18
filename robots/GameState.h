@@ -1,3 +1,7 @@
+/*
+ * jenli414 och sabse455
+ */
+
 /**
  * Copyright (C) David Wolfe, 1999.  All rights reserved.
  * Ported to Qt and adapted for TDDD86, 2015.
@@ -19,14 +23,33 @@
 
 class GameState {
 public:
+    /*
+     * Constructor
+     */
     GameState();
 
+
+    /*
+     * Copy-constructor
+     */
     GameState(const GameState& gameState);
 
+
+    /*
+     * Destructor
+     */
     ~GameState();
 
+
+    /*
+     * Constructor with number of robots parameter
+     */
     GameState(int numberOfRobots);
 
+
+    /*
+     * Assignment operator
+     */
     GameState& operator =(const GameState& gameState);
 
 
@@ -37,7 +60,7 @@ public:
 
 
     /*
-     * acts as a destroctor for the object
+     * Acts as a destructor for the object
      */
     void destructHelper();
 

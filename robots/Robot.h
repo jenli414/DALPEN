@@ -1,3 +1,7 @@
+/*
+ * jenli414 och sabse455
+ */
+
 /**
  * Copyright (C) David Wolfe, 1999.  All rights reserved.
  * Ported to Qt and adapted for TDDD86, 2015.
@@ -23,7 +27,7 @@ public:
     Robot(const Unit& c);
 
     /*
-     * Returns whether a robot is junk.
+     * Returns false because a robot is not junk.
      */
     virtual bool isJunk() const;
 

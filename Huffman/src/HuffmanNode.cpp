@@ -76,3 +76,5 @@ static void printHuffmanNode(ostream& out, const HuffmanNode& node, bool showAdd
     }
     out << "}";
 }
+
+

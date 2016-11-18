@@ -20,36 +20,11 @@ void TileList::addTile(Tile tile)
 }
 
 
-void TileList::checkExpand()
-{
-    if (m_occupied == m_capacity) {
-        Tile* expandedTileList = new Tile[m_capacity * 2];
-        for (int i = 0; i < m_capacity; i++) {
-            expandedTileList[i] = m_tileList[i];
-        }
-        m_capacity *= 2;
-        delete[] m_tileList;
-        m_tileList = expandedTileList;
-    }
-}
-
-
 void TileList::drawAll(QGraphicsScene* scene) const
 {
     for (int i = 0; i < m_occupied; i++){
         m_tileList[i].draw(scene);
     }
-}
-
-
-int TileList::indexOfTopTile(const int& x, const int& y) const
-{
-    for (int i = m_occupied-1; i >= 0; i--) {
-       if (m_tileList[i].contains(x,y)) {
-           return i;
-        }
-    }
-    return -1;
 }
 
 
@@ -84,6 +59,41 @@ void TileList::remove(const int& x, const int& y)
 }
 
 
+void TileList::removeAll(const int& x, const int& y)
+{
+    int index = indexOfTopTile(x,y);
+    while (index != -1) {
+        removeTile(index);
+        index = indexOfTopTile(x,y);
+    }
+}
+
+
+void TileList::checkExpand()
+{
+    if (m_occupied == m_capacity) {
+        Tile* expandedTileList = new Tile[m_capacity * 2];
+        for (int i = 0; i < m_capacity; i++) {
+            expandedTileList[i] = m_tileList[i];
+        }
+        m_capacity *= 2;
+        delete[] m_tileList;
+        m_tileList = expandedTileList;
+    }
+}
+
+
+int TileList::indexOfTopTile(const int& x, const int& y) const
+{
+    for (int i = m_occupied-1; i >= 0; i--) {
+       if (m_tileList[i].contains(x,y)) {
+           return i;
+        }
+    }
+    return -1;
+}
+
+
 Tile TileList::removeTile(const int& index) {
     Tile removedTile = m_tileList[index];
     for (int i = index; i < m_occupied; i++) {
@@ -91,13 +101,4 @@ Tile TileList::removeTile(const int& index) {
     }
     m_occupied--;
     return removedTile;
-}
-
-void TileList::removeAll(const int& x, const int& y)
-{
-    int index = indexOfTopTile(x,y);
-    while (index != -1) {
-        remove(x,y);
-        index = indexOfTopTile(x,y);
-    }
 }

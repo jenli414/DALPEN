@@ -5,14 +5,21 @@
 
 #include "encoding.h"
 #include <queue>
-#include <vector>:
+
 using namespace std;
 
-
+struct LessThanNode
+{
+  bool operator()(const HuffmanNode* lhs, const HuffmanNode* rhs) const
+  {
+    return lhs->count > rhs->count;
+  }
+};
 
 
 
 // TODO: include any other headers you need
+
 
 /*
  * Returns a map of the frequency of the diffrent characters
@@ -32,11 +39,10 @@ map<int, int> buildFrequencyTable(istream& input) {
 }
 
 
-
-
+/*
 
 HuffmanNode* buildEncodingTree(const map<int, int> &freqTable) {
-    priority_queue<HuffmanNode*, vector<HuffmanNode*>> prioQueue;
+    priority_queue<HuffmanNode*, vector<HuffmanNode*>, LessThanNode> prioQueue;
     for (map<int,int>::const_iterator mapIt = freqTable.begin(); mapIt != freqTable.end(); ++mapIt) {
         prioQueue.push(new HuffmanNode(mapIt->first, mapIt->second));
     }
@@ -45,16 +51,49 @@ HuffmanNode* buildEncodingTree(const map<int, int> &freqTable) {
         prioQueue.pop();
         HuffmanNode* rightNode = prioQueue.top();
         prioQueue.pop();
-        HuffmanNode* mergedNode = new HuffmanNode(NOT_A_CHAR, leftNode->count + rightNode->count, leftNode, rightNode);
+        HuffmanNode* mergedNode = new HuffmanNode(NOT_A_CHAR, leftNode->count
+                                                  + rightNode->count, leftNode, rightNode);
         prioQueue.push(mergedNode);
     }
     return prioQueue.top();
+}*/
+
+
+HuffmanNode* buildEncodingTree(const map<int,int> &freqTable) {
+    priority_queue<HuffmanNode, vector<HuffmanNode>> prioQueue;
+    for (map<int,int>::const_iterator mapIt = freqTable.begin(); mapIt != freqTable.end(); ++mapIt) {
+        prioQueue.push(HuffmanNode(mapIt->first, mapIt->second));
+    }
+    while (prioQueue.size() > 1) {
+        HuffmanNode leftNode = prioQueue.top();
+        HuffmanNode* leftPtr = new HuffmanNode(leftNode.character, leftNode.count, leftNode.zero, leftNode.one);
+        prioQueue.pop();
+        HuffmanNode rightNode = prioQueue.top();
+        HuffmanNode* rightPtr = new HuffmanNode(rightNode.character, rightNode.count, rightNode.zero, rightNode.one);
+        prioQueue.pop();
+        HuffmanNode mergedNode(NOT_A_CHAR, leftNode.count+ rightNode.count, leftPtr, rightPtr);
+        prioQueue.push(mergedNode);
+    }
+    HuffmanNode rootNode = prioQueue.top();
+    HuffmanNode* rootPnt = new HuffmanNode(rootNode.character, rootNode.count, rootNode.zero, rootNode.one);
+
+    return rootPnt;
 }
 
 
 
 
 
+/*
+HuffmanNode* buildEncodingTree(const map<int, int> &freqTable){
+    priority_queue<HuffmanNode, vector<HuffmanNode>> prioQueue;
+    for (map<int,int>::const_iterator mapIt = freqTable.begin(); mapIt != freqTable.end(); ++mapIt) {
+        prioQueue.push(HuffmanNode(mapIt->first, mapIt->second));
+    }
+}
+
+
+*/
 
 
 /*
@@ -84,24 +123,31 @@ HuffmanNode* buildEncodingTree(const map<int, int> &freqTable) {
     return rootPtr;
 }*/
 
-/*
 
-void buildEncodingTreeHelper(priority_queue<HuffmanNode> &prioQueue){
-    if (prioQueue.size() > 1){
-        HuffmanNode leftNode = prioQueue.top();
-        prioQueue.pop();
-        HuffmanNode rightNode = prioQueue.top();
-        prioQueue.pop();
-        HuffmanNode mergedNode(NOT_A_CHAR, leftNode.count + rightNode.count, leftNode, rightNode);
-        prioQueue.push(mergedNode);
-        buildEncodingTreeHelper(prioQueue0);
+
+
+
+void buildEncodingMapHelper(HuffmanNode* encodingTree, map<int,string>& encodingMap, string code){
+    string nextCode = code;
+    if (encodingTree != nullptr) {
+        char character = encodingTree->character;
+        if (character == NOT_A_CHAR){
+            nextCode += "0";
+            buildEncodingMapHelper(encodingTree->zero, encodingMap, nextCode);
+            nextCode.pop_back();
+            nextCode += "1";
+            buildEncodingMapHelper(encodingTree->one, encodingMap, nextCode);
+        }
+        else {
+            encodingMap[character] = code;
+        }
     }
 }
-*/
+
 
 map<int, string> buildEncodingMap(HuffmanNode* encodingTree) {
-    // TODO: implement this function
-    map<int, string> encodingMap;
+    map<int,string> encodingMap;
+    buildEncodingMapHelper(encodingTree, encodingMap, "");
     return encodingMap;
 }
 
@@ -124,3 +170,5 @@ void decompress(ibitstream& input, ostream& output) {
 void freeTree(HuffmanNode* node) {
     // TODO: implement this function
 }
+
+

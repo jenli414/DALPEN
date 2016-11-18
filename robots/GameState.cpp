@@ -1,3 +1,8 @@
+/*
+ * jenli414 och sabse455
+ */
+
+
 /**
  * Copyright (C) David Wolfe, 1999.  All rights reserved.
  * Ported to Qt and adapted for TDDD86, 2015.
@@ -88,8 +93,11 @@ void GameState::moveRobots() {
 int GameState::countCollisions() {
     int numberDestroyed = 0;
     unsigned int i = 0;
-    while (i < robots.size()) {
-        if (!(robots[i]->isJunk()) && countRobotsAt(*robots[i]) > 1) {
+    int numOfRobots = robots.size();
+    Robot* currRobot;
+    while (i < numOfRobots) {
+        currRobot = robots[i];
+        if (!(currRobot->isJunk()) && countRobotsAt(*robots[i]) > 1) {
             Robot* newJunk = new Junk(*robots[i]);
             delete robots[i];
             robots[i] = newJunk;
@@ -103,8 +111,9 @@ int GameState::countCollisions() {
 
 bool GameState::anyRobotsLeft() const {
     int robotCount = 0;
+    int numOfRobots = robots.size();
     Robot* currRobot;
-    for(unsigned int i = 0; i < robots.size(); i++) {
+    for (unsigned int i = 0; i < numOfRobots; i++) {
         currRobot = robots[i];
         if (!(currRobot->isJunk())) {
             robotCount++;
@@ -152,8 +161,9 @@ bool GameState::isEmpty(const Unit& unit) const {
  */
 int GameState::countRobotsAt(const Unit& unit) const {
     int count = 0;
+    Robot* currRobot;
     for (size_t i = 0; i < robots.size(); ++i) {
-        Robot* currRobot = robots[i];
+        currRobot = robots[i];
         if (currRobot->at(unit))
             count++;
     }
