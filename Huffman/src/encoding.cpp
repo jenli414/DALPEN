@@ -17,14 +17,10 @@ struct LessThanNode
 };
 
 
-
 // TODO: include any other headers you need
 
 
-/*
- * Returns a map of the frequency of the diffrent characters
- * in the given input istream
- */
+
 map<int, int> buildFrequencyTable(istream& input) {
     map<int, int> freqTable;
     char currChar;
@@ -37,6 +33,98 @@ map<int, int> buildFrequencyTable(istream& input) {
     freqTable[PSEUDO_EOF] = 1;
     return freqTable;
 }
+
+
+HuffmanNode* buildEncodingTree(const map<int,int>& freqTable) {
+    priority_queue<HuffmanNode,vector<HuffmanNode>> prioQueue;
+    for (map<int,int>::const_iterator mapIt = freqTable.begin();
+         mapIt != freqTable.end(); ++mapIt) {
+        prioQueue.push(HuffmanNode(mapIt->first, mapIt->second));
+    }
+    while (prioQueue.size() > 1) {
+        HuffmanNode leftNode = prioQueue.top();
+        HuffmanNode* leftPtr = new HuffmanNode(leftNode.character, leftNode.count, leftNode.zero, leftNode.one);
+        prioQueue.pop();
+        HuffmanNode rightNode = prioQueue.top();
+        HuffmanNode* rightPtr = new HuffmanNode(rightNode.character, rightNode.count, rightNode.zero, rightNode.one);
+        prioQueue.pop();
+        HuffmanNode mergedNode(NOT_A_CHAR, leftNode.count + rightNode.count, leftPtr, rightPtr);
+        prioQueue.push(mergedNode);
+    }
+    HuffmanNode rootNode = prioQueue.top();
+    HuffmanNode* rootPnt = new HuffmanNode(rootNode.character, rootNode.count, rootNode.zero, rootNode.one);
+
+    return rootPnt;
+}
+
+
+map<int,string> buildEncodingMap(const HuffmanNode* encodingTree) {
+    map<int,string> encodingMap;
+    string code = "";
+    if (encodingTree != nullptr) {
+        buildEncodingMapHelper(encodingTree, encodingMap, code);
+    }
+    return encodingMap;
+}
+
+
+void buildEncodingMapHelper(const HuffmanNode* encodingTree,
+                            map<int,string>& encodingMap, string& code) {
+    int character = encodingTree->character;
+    if (character == NOT_A_CHAR){
+        code += "0";
+        buildEncodingMapHelper(encodingTree->zero, encodingMap, code);
+        code.pop_back();
+        code += "1";
+        buildEncodingMapHelper(encodingTree->one, encodingMap, code);
+        code.pop_back();
+    }
+    else {
+        encodingMap[character] = code;
+    }
+}
+
+
+void encodeData(istream& input, const map<int,string>& encodingMap, obitstream& output) {
+    int bit = input.get();
+    string code;
+    while (bit != -1) {
+        code = encodingMap.find(bit)->second;
+        for (string::iterator it = code.begin(); it != code.end(); ++it) {
+            output.writeBit(asciiCharToDecimal(*it));
+        }
+        bit = input.get();
+    }
+    code = encodingMap.find(PSEUDO_EOF)->second;
+    for (string::iterator it = code.begin(); it != code.end(); ++it) {
+        output.writeBit(asciiCharToDecimal(*it));
+    }
+}
+
+
+int asciiCharToDecimal(char asciiChar) {
+    return asciiChar - 48; // subtracts 48 to convert ascii value to decimal value.
+}
+
+void decodeData(ibitstream& input, HuffmanNode* encodingTree, ostream& output) {
+
+}
+
+void compress(istream& input, obitstream& output) {
+    // TODO: implement this function
+}
+
+void decompress(ibitstream& input, ostream& output) {
+    // TODO: implement this function
+}
+
+void freeTree(HuffmanNode* node) {
+    // TODO: implement this function
+}
+
+
+
+
 
 
 /*
@@ -57,31 +145,6 @@ HuffmanNode* buildEncodingTree(const map<int, int> &freqTable) {
     }
     return prioQueue.top();
 }*/
-
-
-HuffmanNode* buildEncodingTree(const map<int,int> &freqTable) {
-    priority_queue<HuffmanNode, vector<HuffmanNode>> prioQueue;
-    for (map<int,int>::const_iterator mapIt = freqTable.begin(); mapIt != freqTable.end(); ++mapIt) {
-        prioQueue.push(HuffmanNode(mapIt->first, mapIt->second));
-    }
-    while (prioQueue.size() > 1) {
-        HuffmanNode leftNode = prioQueue.top();
-        HuffmanNode* leftPtr = new HuffmanNode(leftNode.character, leftNode.count, leftNode.zero, leftNode.one);
-        prioQueue.pop();
-        HuffmanNode rightNode = prioQueue.top();
-        HuffmanNode* rightPtr = new HuffmanNode(rightNode.character, rightNode.count, rightNode.zero, rightNode.one);
-        prioQueue.pop();
-        HuffmanNode mergedNode(NOT_A_CHAR, leftNode.count+ rightNode.count, leftPtr, rightPtr);
-        prioQueue.push(mergedNode);
-    }
-    HuffmanNode rootNode = prioQueue.top();
-    HuffmanNode* rootPnt = new HuffmanNode(rootNode.character, rootNode.count, rootNode.zero, rootNode.one);
-
-    return rootPnt;
-}
-
-
-
 
 
 /*
@@ -122,53 +185,3 @@ HuffmanNode* buildEncodingTree(const map<int, int> &freqTable) {
     rootPtr = &rootNode;
     return rootPtr;
 }*/
-
-
-
-
-
-void buildEncodingMapHelper(HuffmanNode* encodingTree, map<int,string>& encodingMap, string code){
-    string nextCode = code;
-    if (encodingTree != nullptr) {
-        char character = encodingTree->character;
-        if (character == NOT_A_CHAR){
-            nextCode += "0";
-            buildEncodingMapHelper(encodingTree->zero, encodingMap, nextCode);
-            nextCode.pop_back();
-            nextCode += "1";
-            buildEncodingMapHelper(encodingTree->one, encodingMap, nextCode);
-        }
-        else {
-            encodingMap[character] = code;
-        }
-    }
-}
-
-
-map<int, string> buildEncodingMap(HuffmanNode* encodingTree) {
-    map<int,string> encodingMap;
-    buildEncodingMapHelper(encodingTree, encodingMap, "");
-    return encodingMap;
-}
-
-void encodeData(istream& input, const map<int, string> &encodingMap, obitstream& output) {
-    // TODO: implement this function
-}
-
-void decodeData(ibitstream& input, HuffmanNode* encodingTree, ostream& output) {
-    // TODO: implement this function
-}
-
-void compress(istream& input, obitstream& output) {
-    // TODO: implement this function
-}
-
-void decompress(ibitstream& input, ostream& output) {
-    // TODO: implement this function
-}
-
-void freeTree(HuffmanNode* node) {
-    // TODO: implement this function
-}
-
-
