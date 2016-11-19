@@ -49,22 +49,29 @@ void buildEncodingMapHelper(const HuffmanNode* encodingTree, map<int,string>& en
 
 
 /*
- * Used an encodingMap to output the corresponding binary code of each character
+ * Uses an encodingMap to output the corresponding binary code of each character
  * from a given input.
  */
 void encodeData(istream& input, const map<int,string>& encodingMap, obitstream& output);
 
 
 /*
- * Takes an ASCII-character and returns its decimal value.
+ * Takes an ASCII-number and returns its decimal value.
  */
-int asciiCharToDecimal(char asciiChar);
+int asciiNumToDecimal(char asciiNum);
+
+
+/*
+ * Uses an encodingTree to translate given binary code input into the
+ * corresponding characters.
+ */
+void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& output);
 
 
 /*
  *
  */
-void decodeData(ibitstream& input, HuffmanNode* encodingTree, ostream& output);
+int decodeChar(const HuffmanNode* encodingTree, string& binaryCode);
 
 
 /*

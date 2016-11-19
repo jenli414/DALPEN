@@ -17,10 +17,6 @@ struct LessThanNode
 };
 
 
-// TODO: include any other headers you need
-
-
-
 map<int, int> buildFrequencyTable(istream& input) {
     map<int, int> freqTable;
     char currChar;
@@ -86,29 +82,60 @@ void buildEncodingMapHelper(const HuffmanNode* encodingTree,
 
 
 void encodeData(istream& input, const map<int,string>& encodingMap, obitstream& output) {
-    int bit = input.get();
+    int byte = input.get();
     string code;
-    while (bit != -1) {
-        code = encodingMap.find(bit)->second;
+    while (byte != -1) {
+        code = encodingMap.find(byte)->second;
         for (string::iterator it = code.begin(); it != code.end(); ++it) {
-            output.writeBit(asciiCharToDecimal(*it));
+            output.writeBit(asciiNumToDecimal(*it));
         }
-        bit = input.get();
+        byte = input.get();
     }
     code = encodingMap.find(PSEUDO_EOF)->second;
     for (string::iterator it = code.begin(); it != code.end(); ++it) {
-        output.writeBit(asciiCharToDecimal(*it));
+        output.writeBit(asciiNumToDecimal(*it));
     }
 }
 
 
-int asciiCharToDecimal(char asciiChar) {
-    return asciiChar - 48; // subtracts 48 to convert ascii value to decimal value.
+int asciiNumToDecimal(char asciiNum) {
+    return asciiNum - 48;
 }
 
-void decodeData(ibitstream& input, HuffmanNode* encodingTree, ostream& output) {
 
+void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& output) {
+    string binaryCode;
+    int bit = input.readBit();
+    while (bit != -1) {
+        binaryCode += to_string(bit);
+        bit = input.readBit();
+    }
+    string translation = "";
+    while (!binaryCode.empty()) {
+        translation += decodeChar(encodingTree, binaryCode);
+    }
+    for (string::iterator it = translation.begin(); it != translation.end(); ++it) {
+        output.put(*it);
+    }
 }
+
+
+int decodeChar(const HuffmanNode* encodingTree, string& binaryCode) {
+    int character = encodingTree->character;
+    if (character == NOT_A_CHAR) {
+        string nextChild = binaryCode.substr(0,1);
+        binaryCode = binaryCode.substr(1, binaryCode.size() - 1);
+        if (nextChild == "0") {
+            return decodeChar(encodingTree->zero, binaryCode);
+        } else {
+            return decodeChar(encodingTree->one, binaryCode);
+        }
+    } else if (character == PSEUDO_EOF) {
+        binaryCode.clear();
+    }
+    return character;
+}
+
 
 void compress(istream& input, obitstream& output) {
     // TODO: implement this function
