@@ -71,7 +71,7 @@ void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& out
 /*
  *
  */
-int decodeChar(const HuffmanNode* encodingTree, string& binaryCode);
+char decodeChar(const HuffmanNode* encodingTree, string& binaryCode);
 
 
 /*
@@ -84,6 +84,24 @@ void compress(istream& input, obitstream& output);
  *
  */
 void decompress(ibitstream& input, ostream& output);
+
+
+/*
+ *
+ */
+bool endOfKey(const int& character);
+
+
+/*
+ *
+ */
+bool endOfFreq(const int& character);
+
+
+/*
+ *
+ */
+bool endOfHeader(const int& character);
 
 
 /*

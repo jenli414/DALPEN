@@ -17,8 +17,8 @@ struct LessThanNode
 };
 
 
-map<int, int> buildFrequencyTable(istream& input) {
-    map<int, int> freqTable;
+map<int,int> buildFrequencyTable(istream& input) {
+    map<int,int> freqTable;
     char currChar;
     while (input.get(currChar)){
         if (!freqTable.count(currChar)) {
@@ -82,16 +82,13 @@ void buildEncodingMapHelper(const HuffmanNode* encodingTree,
 
 
 void encodeData(istream& input, const map<int,string>& encodingMap, obitstream& output) {
-    int byte = input.get();
     string code;
+    int byte = input.get();
     while (byte != -1) {
-        code = encodingMap.find(byte)->second;
-        for (string::iterator it = code.begin(); it != code.end(); ++it) {
-            output.writeBit(asciiNumToDecimal(*it));
-        }
+        code += encodingMap.find(byte)->second;
         byte = input.get();
     }
-    code = encodingMap.find(PSEUDO_EOF)->second;
+    code += encodingMap.find(PSEUDO_EOF)->second;
     for (string::iterator it = code.begin(); it != code.end(); ++it) {
         output.writeBit(asciiNumToDecimal(*it));
     }
@@ -110,17 +107,14 @@ void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& out
         binaryCode += to_string(bit);
         bit = input.readBit();
     }
-    string translation = "";
     while (!binaryCode.empty()) {
-        translation += decodeChar(encodingTree, binaryCode);
+        output.put(decodeChar(encodingTree, binaryCode));
     }
-    for (string::iterator it = translation.begin(); it != translation.end(); ++it) {
-        output.put(*it);
-    }
+
 }
 
 
-int decodeChar(const HuffmanNode* encodingTree, string& binaryCode) {
+char decodeChar(const HuffmanNode* encodingTree, string& binaryCode) {
     int character = encodingTree->character;
     if (character == NOT_A_CHAR) {
         string nextChild = binaryCode.substr(0,1);
@@ -138,11 +132,83 @@ int decodeChar(const HuffmanNode* encodingTree, string& binaryCode) {
 
 
 void compress(istream& input, obitstream& output) {
-    // TODO: implement this function
+    map<int,int> freqTable = buildFrequencyTable(input);
+    output.put('{');
+    map<int,int>::const_iterator mapIt = freqTable.begin();
+    string key;
+    string freq;
+    while (mapIt != freqTable.end()) {
+        key = to_string(mapIt->first);
+        for (string::iterator it = key.begin(); it != key.end(); it++) {
+            output.put(*it);
+        }
+        output.put(':');
+        freq = to_string(mapIt->second);
+        for (string::iterator it = freq.begin(); it != freq.end(); it++) {
+            output.put(*it);
+        }
+        mapIt++;
+        if (mapIt != freqTable.end()) {
+            output.put(',');
+        }
+    }
+    output.put('}');
+    HuffmanNode* encodingTree = buildEncodingTree(freqTable);
+    encodeData(input, buildEncodingMap(encodingTree), output);
 }
 
 void decompress(ibitstream& input, ostream& output) {
-    // TODO: implement this function
+    map<int,int> freqTable;
+    string keyAscii;
+    string keyDecimal;
+    string freqAscii;
+    string freqDecimal;
+    char nextChar = input.get();
+    while (!endOfHeader(nextChar)) {
+        keyAscii += to_string(input.get());
+        cout << "key: " << keyAscii << endl;
+        nextChar = input.get();
+        while (!endOfKey(nextChar)) {
+            keyAscii += to_string(nextChar);
+            cout << "key: " << keyAscii << endl;
+            nextChar = input.get();
+        } while (keyAscii.length() >= 2) {
+            keyDecimal += to_string(asciiNumToDecimal(stoi(keyAscii.substr(0,2))));
+            keyAscii = keyAscii.substr(2, keyAscii.size() - 2);
+        }
+        freqAscii += to_string(input.get());
+        cout << "freq: " << freqAscii << endl;
+        nextChar = input.get();
+        while (!endOfFreq(nextChar)) {
+            freqAscii += to_string(nextChar);
+            cout << "freq: " << freqAscii << endl;
+            nextChar = input.get();
+        } while (freqAscii.length() >= 2) {
+            freqDecimal += to_string(asciiNumToDecimal(stoi(freqAscii.substr(0,2))));
+            freqAscii = freqAscii.substr(2, freqAscii.size() - 2);
+        }
+        freqTable[stoi(keyDecimal)] = stoi(freqDecimal);
+        keyAscii.clear();
+        keyDecimal.clear();
+        freqAscii.clear();
+        freqDecimal.clear();
+    }
+    decodeData(input, buildEncodingTree(freqTable), output);
+}
+
+
+bool endOfKey(const int& character) {
+    return character == 58; // 58 = ':'
+}
+
+
+bool endOfFreq(const int& character) {
+    return character == 44 || character == 125; // 44 = ',' och 125 = '}'
+}
+
+
+bool endOfHeader(const int& character) {
+    return character == 125; // 125 = '}'
 }
 
 void freeTree(HuffmanNode* node) {

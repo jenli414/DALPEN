@@ -31,14 +31,6 @@ Boggle::Boggle() {
 
 
 /*
- * Deconstructor.
- */
-Boggle::~Boggle() {
-
-}
-
-
-/*
  * Prepares a new game of Boggle.
  */
 void Boggle::newGame() {
@@ -102,7 +94,7 @@ Grid<char> Boggle::getBoard() const {
  * Returns the number of words in m_playerFound.
  */
 int Boggle::getPlayerFoundNum() const {
-    return m_playerFoundNum;
+    return m_playerFound.size();
 }
 
 
@@ -110,7 +102,7 @@ int Boggle::getPlayerFoundNum() const {
  * Returns the number of words in m_NPCFound,
  */
 int Boggle::getNPCFoundNum() const {
-    return m_NPCFoundNum;
+    return m_NPCFound.size();
 }
 
 
@@ -192,8 +184,7 @@ bool Boggle::isNewWord(string& word) const {
  * Pre-condition: Word is a valid word and in upper case.
  */
 void Boggle::addToPlayerFound(const string& word) {
-    addToCharacterFound(word, m_playerFound, m_playerFoundNum,
-                        m_playerScore, m_playerFoundStr);
+    addToCharacterFound(word, m_playerFound, m_playerScore, m_playerFoundStr);
 }
 
 
@@ -202,11 +193,10 @@ void Boggle::addToPlayerFound(const string& word) {
  * Pre-condition: Word is a valid word and in upper case.
  */
 void Boggle::addToCharacterFound(const string& word, set<string>& found,
-                                 int& foundNum, int& score, string& foundStr) {
+                                 int& score, string& foundStr) {
     found.insert(word);
-    foundNum++;
     score += word.length() - 3;
-    if (foundNum == 1) {
+    if (found.size() == 1) {
         foundStr = "{" + word + "}";
     } else {
         foundStr.pop_back();
@@ -278,7 +268,7 @@ void Boggle::findAllWordsHelper(const int& row, const int& col, string& prefix,
     bool isValidWord = isValidLength(prefix) &&
             isInDictionary(prefix) && isNewWord(prefix);
     if (isValidWord) {
-        addToCharacterFound(prefix, m_NPCFound, m_NPCFoundNum,
+        addToCharacterFound(prefix, m_NPCFound,
                             m_NPCScore, m_NPCFoundStr);
     } if (m_dictionary.containsPrefix(prefix)) {
         for (int row_i = -1; row_i <= 1; ++row_i) {

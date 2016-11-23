@@ -28,9 +28,9 @@ public:
 
 
     /*
-     * Deconstructor.
+     * Destructor.
      */
-    ~Boggle();
+    ~Boggle() = default;
 
 
     /*
@@ -135,7 +135,7 @@ public:
      * Pre-condition: Word is a valid word and in upper case.
      */
     void addToCharacterFound(const string& word, set<string>& found,
-                                     int& foundNum, int& score, string& foundStr);
+                             int& score, string& foundStr);
 
 
     /*
@@ -148,9 +148,7 @@ private:
     Grid<char> m_boardGrid;         // Current board represented as a grid.
     set<string> m_playerFound;      // Words that player has found.
     set<string> m_NPCFound;         // Words that NPC has found.
-    Lexicon m_dictionary;           // Valid Words.
-    int m_playerFoundNum;           // Number of words in m_playerFound
-    int m_NPCFoundNum;              // Number of words in m_NPCFound
+    Lexicon m_dictionary;           // Valid Words.    
     int m_playerScore;              // Player score
     int m_NPCScore;                 // NPC score
     string m_playerFoundStr;        // String representation of m_playerFound
