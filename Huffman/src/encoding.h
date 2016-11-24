@@ -89,19 +89,19 @@ void decompress(ibitstream& input, ostream& output);
 /*
  *
  */
-bool endOfKey(const int& character);
+bool isEmptyHeader(ibitstream& input);
 
 
 /*
  *
  */
-bool endOfFreq(const int& character);
+bool isEndOfFreq(const int& character);
 
 
 /*
  *
  */
-bool endOfHeader(const int& character);
+bool isEndOfHeader(const int& character);
 
 
 /*
