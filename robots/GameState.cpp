@@ -53,8 +53,14 @@ void GameState::copyHelper(const GameState& gameState) {
     hero = gameState.hero;
     int robotSize = gameState.robots.size();
     for (int i = 0; i < robotSize; i++){
-        Robot* robotPtr = new Robot(*gameState.robots[i]);
-    robots.push_back(robotPtr);
+        Robot currRobot = *gameState.robots[i];
+        Robot* robotPtr;
+        if (currRobot.isJunk()) {
+            robotPtr = new Junk(currRobot);
+        } else {
+            robotPtr = new Robot(currRobot);
+        }
+        robots.push_back(robotPtr);
     }
 }
 
