@@ -89,85 +89,27 @@ int asciiNumToDecimal(const char& asciiNum) {
 }
 
 
-/*
 void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& output) {
-    HuffmanNode* startNode = encodingTree;
-    HuffmanNode* currNode = encodingTree;
-    int bit = input.readBit();
-    int currChar = currNode->character;
-    while (bit != -1) {
-        if (currChar == NOT_A_CHAR) {
-            if (bit == 0) {
-                currNode = currNode->zero;
-                currChar = currNode->character;
-            } else {
-                currNode = currNode->one;
-            }
-        } else {
-            output.put(currChar);
-            currNode = startNode;
-            if (currChar == PSEUDO_EOF) {
-                break;
-            }
-        }
-        bit = input.readBit();
-    }
-}*/
-
-
-void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& output) {
-    decodeDataHelper(input, encodingTree, encodingTree, output);
-}
-
-void decodeDataHelper(ibitstream& input, const HuffmanNode* startNode, const HuffmanNode* currNode, ostream& output) {
-    int currChar = currNode->character;
-    int bit = input.readBit();
-    cout << bit << endl;
-    if (bit != -1 && currChar != PSEUDO_EOF) {
-        if (currChar == NOT_A_CHAR) {
-            if (bit == 0) {
-                decodeDataHelper(input, startNode, currNode->zero, output);
-            } else {
-                decodeDataHelper(input, startNode, currNode->one, output);
-            }
-        } else {
-            output.put(currChar);
-            decodeDataHelper(input, startNode, startNode, output);
-        }
+    bool isEndOfFile = false;
+    while (!isEndOfFile){                       //FRÅGA KIM, onödig Moooool?
+        isEndOfFile = decodeDataHelper(input, encodingTree, output);
     }
 }
 
 
-//Från början, FUNKAR!
-
-/*void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& output) {
-    string binaryCode;
-    int bit = input.readBit();
-    while (bit != -1) {
-        binaryCode += to_string(bit);
-        bit = input.readBit();
-    }
-    while (!binaryCode.empty()) {
-        output.put(decodeChar(encodingTree, binaryCode));
-    }
-}*/
-
-
-/*char decodeChar(const HuffmanNode* encodingTree, string& binaryCode) {
-    int byte = encodingTree->character;
-    if (byte == NOT_A_CHAR) {
-        string nextChild = binaryCode.substr(0,1);
-        binaryCode = binaryCode.substr(1, string::npos);
-        if (nextChild == "0") {
-            return decodeChar(encodingTree->zero, binaryCode);
+bool decodeDataHelper(ibitstream& input, const HuffmanNode* currNode, ostream& output) {
+    int currChar = currNode->character;
+    if (currChar == NOT_A_CHAR) {
+        if (input.readBit() == 0) {
+            return decodeDataHelper(input, currNode->zero, output);
         } else {
-            return decodeChar(encodingTree->one, binaryCode);
+            return decodeDataHelper(input, currNode->one, output);
         }
-    } else if (byte == PSEUDO_EOF) {
-        binaryCode.clear();
+    } else {
+        output.put(currChar);
+        return currChar == PSEUDO_EOF;
     }
-    return byte;
-}*/
+}
 
 
 void compress(istream& input, obitstream& output) {
