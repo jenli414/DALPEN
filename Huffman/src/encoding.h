@@ -18,8 +18,9 @@
 using namespace std;
 
 /*
- * Returns a map of the frequency of the diffrent characters
- * in the given input istream.
+ * Builds and returns a frequency table from given input.
+ * I.e. a map<int,int> of every unique byte value from input paired with number
+ * of occurances.
  */
 map<int, int> buildFrequencyTable(istream& input);
 
@@ -34,36 +35,36 @@ HuffmanNode* buildEncodingTree(const map<int,int>& freqTable);
 
 
 /*
- * Builds an encoding map from an encoding tree, i.e a map with each character
+ * Builds an encoding map from an encoding tree, i.e a map with each byte
  * (that is used >0 times) paired with the binary code that will lead to
- * that character in the encoding tree.
+ * that byte in the encoding tree.
  */
 map<int, string> buildEncodingMap(const HuffmanNode* encodingTree);
 
 
 /*
- * Help-function to add all characters and corresponding binary codes to
+ * Help-function to add all bytes and corresponding binary codes to
  * the encoding map.
  */
 void buildEncodingMapHelper(const HuffmanNode* encodingTree, map<int,string>& encodingMap, string& code);
 
 
 /*
- * Uses an encodingMap to output the corresponding binary code of each character
+ * Uses an encodingMap to output the corresponding binary code of each byte
  * from a given input.
  */
 void encodeData(istream& input, const map<int,string>& encodingMap, obitstream& output);
 
 
 /*
- * Takes an ASCII-number and returns its decimal value.
+ * Takes an ASCII-character (0-9) value and returns its decimal value.
  */
-int asciiNumToDecimal(char asciiNum);
+int asciiNumToDecimal(const char& asciiNum);
 
 
 /*
  * Uses an encodingTree to translate given binary code input into the
- * corresponding characters.
+ * corresponding bytes.
  */
 void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& output);
 
@@ -71,7 +72,9 @@ void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& out
 /*
  *
  */
-char decodeChar(const HuffmanNode* encodingTree, string& binaryCode);
+//char decodeChar(const HuffmanNode* encodingTree, string& binaryCode);
+
+void decodeDataHelper(ibitstream& input, const HuffmanNode* startNode, const HuffmanNode* currNode, ostream& output);
 
 
 /*
@@ -89,19 +92,19 @@ void decompress(ibitstream& input, ostream& output);
 /*
  *
  */
-bool isEmptyHeader(ibitstream& input);
+bool isEndOfHeader(const char& character);
 
 
 /*
  *
  */
-bool isEndOfFreq(const int& character);
+bool isEndOfKey(const char& character);
 
 
 /*
  *
  */
-bool isEndOfHeader(const int& character);
+bool isEndOfFreq(const char& character);
 
 
 /*
