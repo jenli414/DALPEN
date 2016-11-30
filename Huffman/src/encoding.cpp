@@ -9,6 +9,11 @@
 using namespace std;
 
 
+/*
+ * Builds and returns a frequency table from given input.
+ * I.e. a map<int,int> of every unique character value from input paired with
+ * number of occurances.
+ */
 map<int,int> buildFrequencyTable(istream& input) {
     map<int,int> freqTable;
     int currByte = input.get();
@@ -21,6 +26,12 @@ map<int,int> buildFrequencyTable(istream& input) {
 }
 
 
+/*
+ * Builds an encoding tree from a frequency table, i.e. a tree of HuffmanNodes.
+ * The characters are stored in the leaf positions of the tree. The parents and
+ * the root of the tree don't store characters but the total frequency of all
+ * characters in the leafs underneath it.
+ */
 HuffmanNode* buildEncodingTree(const map<int,int>& freqTable) {
     priority_queue<HuffmanNode,vector<HuffmanNode>> prioQueue;
     for (map<int,int>::const_iterator mapIt = freqTable.begin();
@@ -43,6 +54,11 @@ HuffmanNode* buildEncodingTree(const map<int,int>& freqTable) {
 }
 
 
+/*
+ * Builds an encoding map from an encoding tree, i.e a map with each character
+ * (that is used >0 times) paired with the binary code that will lead to
+ * that character in the encoding tree.
+ */
 map<int,string> buildEncodingMap(const HuffmanNode* encodingTree) {
     map<int,string> encodingMap;
     string code = "";
@@ -53,6 +69,10 @@ map<int,string> buildEncodingMap(const HuffmanNode* encodingTree) {
 }
 
 
+/*
+ * Help-function to add all characters and corresponding binary codes to
+ * the encoding map.
+ */
 void buildEncodingMapHelper(const HuffmanNode* encodingTree,
                             map<int,string>& encodingMap, string& code) {
     int character = encodingTree->character;
@@ -70,6 +90,10 @@ void buildEncodingMapHelper(const HuffmanNode* encodingTree,
 }
 
 
+/*
+ * Uses an encodingMap to output the corresponding binary code of
+ * each character from a given input.
+ */
 void encodeData(istream& input, const map<int,string>& encodingMap, obitstream& output) {
     string code;
     int byte = input.get();
@@ -84,19 +108,31 @@ void encodeData(istream& input, const map<int,string>& encodingMap, obitstream& 
 }
 
 
+/*
+ * Takes an ASCII-character (0-9) value and returns its decimal value.
+ */
 int asciiNumToDecimal(const char& asciiNum) {
     return asciiNum - 48;
 }
 
 
+/*
+ * Uses an encodingTree to translate given binary code input into the
+ * corresponding character.
+ */
 void decodeData(ibitstream& input, const HuffmanNode* encodingTree, ostream& output) {
     bool isEndOfFile = false;
-    while (!isEndOfFile){                       //FRÅGA KIM, onödig Moooool?
+    while (!isEndOfFile) {
         isEndOfFile = decodeDataHelper(input, encodingTree, output);
     }
 }
 
 
+/*
+ * Reads input bit by bit and moves through the encodingTree until it
+ * finds a character. Returns true if it reached the PSEUDO_EOF character
+ * (end of file).
+ */
 bool decodeDataHelper(ibitstream& input, const HuffmanNode* currNode, ostream& output) {
     int currChar = currNode->character;
     if (currChar == NOT_A_CHAR) {
@@ -112,6 +148,9 @@ bool decodeDataHelper(ibitstream& input, const HuffmanNode* currNode, ostream& o
 }
 
 
+/*
+ * Compresses given input. Adds a header of characters and frequencies.
+ */
 void compress(istream& input, obitstream& output) {
     map<int,int> freqTable = buildFrequencyTable(input);
     input.clear();
@@ -142,6 +181,9 @@ void compress(istream& input, obitstream& output) {
 }
 
 
+/*
+ * Decompresses given input.
+ */
 void decompress(ibitstream& input, ostream& output) {
     map<int,int> freqTable;
     string key;
@@ -170,21 +212,36 @@ void decompress(ibitstream& input, ostream& output) {
 }
 
 
+/*
+ * Returns true if character equals '}' which means that it is
+ * the end of the header.
+ */
 bool isEndOfHeader(const char& character) {
     return character == '}';
 }
 
 
+/*
+ * Returns true if character equals ':' which means that it is
+ * the end of the key.
+ */
 bool isEndOfKey(const char& character) {
     return character == ':';
 }
 
 
+/*
+ * Returns true if character equals ',' or '}' which means that it is
+ * the end of the frequency.
+ */
 bool isEndOfFreq(const char& character) {
     return character == ',' || character == '}';
 }
 
 
+/*
+ * Frees the associated memory of node.
+ */
 void freeTree(HuffmanNode* node) {
     if (node->character != NOT_A_CHAR) {
         delete node;

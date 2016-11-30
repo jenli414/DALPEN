@@ -24,10 +24,11 @@ void setInitialRemainingWords(const set<string>& dictionary,
                                  const unsigned int& uWordLength,
                                  set<string>& remainingWords);
 void askForGuess(set<char>& alreadyGuessedLetters, char& guess);
-void findLargestWordFamily(set<string>& remainingWords, const char& guess,
-                           const int& wordLength);
+void findLargestWordFamily(set<string>& remainingWords, const int& uNumOfGuesses,
+                           const char& guess, const int& wordLength);
 bool wordComplete(set<char>& alreadyGuessedLetters, string& chosenWord);
-void setNumOfGuesses(unsigned int& numOfGuesses, const char& guess, const string& sampleWord);
+void setNumOfGuesses(unsigned int& numOfGuesses, const char& guess,
+                     const string& sampleWord);
 void printGuessStatus(const unsigned int& uNumOfGuesses,
                       const set<char>& alreadyGuessedLetters,
                       const string& currentResult);
@@ -75,7 +76,7 @@ void readDictionary(set<string>& dictionary) {
 }
 
 /*
- * Sets shortestWord and longestWord to the length of the shortest and longest
+ * Sets shortestWord and longestWord to the length of the sh                           ortest and longest
  * word in the dictionary.
  */
 void getWordLengthLimits(const set<string>& dictionary, unsigned int& shortestWord,
@@ -117,7 +118,7 @@ void startGame(const set<string>& dictionary, const unsigned int& shortestWord,
     while (!playerWon && uNumOfGuesses > 0) {
         askForGuess(alreadyGuessedLetters, guess);       
         if (remainingWords.size() != 1) {
-            findLargestWordFamily(remainingWords, guess, uWordLength);
+            findLargestWordFamily(remainingWords, uNumOfGuesses, guess, uWordLength);
             wordIt = remainingWords.begin();
             sampleWord = *wordIt;
         }
@@ -272,8 +273,8 @@ void askForGuess(set<char>& alreadyGuessedLetters, char& guess) {
  * Sets remainingWords to the largest possible word family depending on
  * what letter the player has guessed.
  */
-void findLargestWordFamily(set<string>& remainingWords, const char& guess,
-                           const int& wordLength) {
+void findLargestWordFamily(set<string>& remainingWords, const int& uNumOfGuesses,
+                           const char& guess, const int& wordLength) {
     map<string,set<string>> wordFamilies;
     for (set<string>::iterator wordIt = remainingWords.begin();
          wordIt != remainingWords.end(); ++wordIt) {
@@ -289,11 +290,18 @@ void findLargestWordFamily(set<string>& remainingWords, const char& guess,
         }
         wordFamilies[keyStream.str()].insert(currentWord);
     }
-    unsigned int currLargestSize = 0;
-    for (map<string,set<string>>::iterator mapIt = wordFamilies.begin(); mapIt != wordFamilies.end(); ++mapIt) {
-        if (mapIt->second.size() > currLargestSize) {
-            currLargestSize = mapIt->second.size();
-            remainingWords = mapIt->second;
+    string emptyFamily;
+    emptyFamily.insert(0, wordLength, '-');
+    if (uNumOfGuesses == 1 && wordFamilies.count(emptyFamily)) {
+        remainingWords = (*wordFamilies.find(emptyFamily)).second;
+    } else {
+        unsigned int currLargestSize = 0;
+        for (map<string,set<string>>::iterator mapIt = wordFamilies.begin();
+             mapIt != wordFamilies.end(); ++mapIt) {
+            if (mapIt->second.size() > currLargestSize) {
+                currLargestSize = mapIt->second.size();
+                remainingWords = mapIt->second;
+            }
         }
     }
 }
