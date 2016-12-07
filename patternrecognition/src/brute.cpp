@@ -1,9 +1,3 @@
-/*
- * TDDD86 Pattern Recognition
- * This program computes and plots all line segments involving 4 points
- * in a file using Qt.
- */
-
 #include <QApplication>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -13,6 +7,7 @@
 #include <vector>
 #include <chrono>
 #include "Point.h"
+#include <set>
 
 // constants
 static const int SCENE_WIDTH = 512;
@@ -28,11 +23,37 @@ void render_line(QGraphicsScene* scene, const Point& p1, const Point& p2) {
     p1.lineTo(scene, p2);
 }
 
+void getSlopes(map<double,set<Point>>& slopes, const Point& startPoint, const vector<Point>& points) {
+    double gradient;
+    for (vector<Point>::const_iterator pointIt = points.begin();
+                 pointIt != points.end(); ++pointIt) {
+        gradient = startPoint.slopeTo(*pointIt);
+        slopes[gradient].insert(*pointIt);
+    }
+    for (map<double,set<Point>>::iterator mapIt = slopes.begin();
+         mapIt != slopes.end(); mapIt++) {
+        if (mapIt->second.size() < 4) {
+            slopes.erase(mapIt);
+        }
+    }
+}
+
+bool slopeDrawnByConnectingPoint(const double slope, const set<pair<double,Point>>& taken, const Point& point) {
+    for (set<pair<double,Point>>::const_iterator takenIt = taken.begin();
+         takenIt != taken.end(); takenIt++) {
+        if (takenIt->first == slope && point.slopeTo(takenIt->second) == slope) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     // open file
-    string filename = "input12800.txt";
+    string filename = "input100.txt";
     ifstream input;
     input.open(filename);
 
@@ -68,21 +89,32 @@ int main(int argc, char *argv[]) {
     sort(points.begin(), points.end());
     auto begin = chrono::high_resolution_clock::now();
 
-    // iterate through all combinations of 4 points
-    for (int i = 0 ; i < N-3 ; ++i) {
-        for (int j{i+1} ; j < N-2 ; ++j) {
-            for (int k{j+1} ; k < N-1 ; ++k) {
-                //only consider fourth point if first three are collinear
-                if (points.at(i).slopeTo(points.at(j)) == points.at(i).slopeTo(points.at(k))) {
-                    for (int m{k+1} ; m < N ; ++m) {
-                        if (points.at(i).slopeTo(points.at(j)) == points.at(i).slopeTo(points.at(m))) {
-                            render_line(scene, points.at(i), points.at(m));
-                            a.processEvents(); // show rendered line
-                        }
-                    }
+    set<pair<double,Point>> taken;
+    map<double,set<Point>> slopes;
+    while (!points.empty()) {
+        getSlopes(slopes, points.at(0), points);
+        for (map<double,set<Point>>::iterator slopeIt = slopes.begin(); slopeIt != slopes.end(); slopeIt++) {
+            if (!slopeDrawnByConnectingPoint(slopeIt->first, taken, points.at(0))) {
+                set<Point>::iterator pointIt = slopeIt->second.begin();
+                Point fromPoint = Point(0,0);
+                Point toPoint = Point(0,0);
+                if (pointIt != slopeIt->second.end()) {
+                    fromPoint = *pointIt;
+                    pointIt++;
                 }
+                while (pointIt != slopeIt->second.end()) {
+                    toPoint = *pointIt;
+                    render_line(scene, fromPoint, toPoint);
+                    a.processEvents();
+                    fromPoint = toPoint;
+                    pointIt++;
+                }
+                pair<double,Point> newTaken(slopeIt->first,points.at(0));
+                taken.insert(newTaken);
             }
         }
+        points.erase(points.begin());
+        slopes.clear();
     }
 
     auto end = chrono::high_resolution_clock::now();
