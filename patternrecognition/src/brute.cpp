@@ -23,25 +23,54 @@ void render_line(QGraphicsScene* scene, const Point& p1, const Point& p2) {
     p1.lineTo(scene, p2);
 }
 
-void getSlopes(map<double,set<Point>>& slopes, const Point& startPoint, const vector<Point>& points) {
+
+/**
+ * Slope between this point and p
+ *
+ * If the points are the same, negative infinity is returned
+ * If the line between the points is horizontal positive zero is returned
+ * If the line between the points is vertical positive infinity is returned
+ */
+void getLines(map<double,set<Point>>& lines, const Point& startPoint,
+              const vector<Point>& points) {
+    lines.clear();
     double gradient;
+    unsigned int samePointCount = 0;
+    map<double,set<Point>> tempLines;
     for (vector<Point>::const_iterator pointIt = points.begin();
                  pointIt != points.end(); ++pointIt) {
         gradient = startPoint.slopeTo(*pointIt);
-        slopes[gradient].insert(*pointIt);
-    }
-    for (map<double,set<Point>>::iterator mapIt = slopes.begin();
-         mapIt != slopes.end(); mapIt++) {
-        if (mapIt->second.size() < 4) {
-            slopes.erase(mapIt);
+        if (gradient == -std::numeric_limits<double>::infinity()) {
+            samePointCount++;
+        } else {
+            tempLines[gradient].insert(*pointIt);
         }
     }
+    for (map<double,set<Point>>::iterator mapIt = tempLines.begin(); mapIt != tempLines.end(); mapIt++) {
+        if (mapIt->second.size() >= (3 - samePointCount)) {
+            lines[mapIt->first] = mapIt->second;
+        }
+    }
+    /*for (map<double,set<Point>>::iterator mapIt = lines.begin(); mapIt != lines.end(); mapIt++) {
+        if (mapIt->second.size() < (3 - samePointCount)) {
+            lines.erase(mapIt);
+        }
+    }*/
+    /*map<double,set<Point>>::iterator mapIt = lines.begin();
+    while (mapIt != lines.end()) {
+        if (mapIt->second.size() < (3 - samePointCount)) {
+            lines.erase(mapIt);
+        }
+        mapIt++;
+    }*/
 }
 
-bool slopeDrawnByConnectingPoint(const double slope, const set<pair<double,Point>>& taken, const Point& point) {
+bool lineDrawnByConnectingPoint(const double gradient,
+                                const set<pair<double,Point>>& taken,
+                                const Point& point) {
     for (set<pair<double,Point>>::const_iterator takenIt = taken.begin();
          takenIt != taken.end(); takenIt++) {
-        if (takenIt->first == slope && point.slopeTo(takenIt->second) == slope) {
+        if (takenIt->first == gradient && point.slopeTo(takenIt->second) == gradient) {
             return true;
         }
     }
@@ -57,7 +86,7 @@ int main(int argc, char *argv[]) {
     ifstream input;
     input.open(filename);
 
-    // the vector of points
+    // the vector of pointslines
     vector<Point> points;
 
     // read points from file
@@ -89,32 +118,41 @@ int main(int argc, char *argv[]) {
     sort(points.begin(), points.end());
     auto begin = chrono::high_resolution_clock::now();
 
-    set<pair<double,Point>> taken;
-    map<double,set<Point>> slopes;
+    //set<pair<double,Point>> taken;
+    map<double,set<Point>> lines;
+    Point currPoint(0,0);
+    string str;
+    int num = 0;
+    //double gradient;
     while (!points.empty()) {
-        getSlopes(slopes, points.at(0), points);
-        for (map<double,set<Point>>::iterator slopeIt = slopes.begin(); slopeIt != slopes.end(); slopeIt++) {
-            if (!slopeDrawnByConnectingPoint(slopeIt->first, taken, points.at(0))) {
-                set<Point>::iterator pointIt = slopeIt->second.begin();
-                Point fromPoint = Point(0,0);
+        currPoint = points.at(0);
+        points.erase(points.begin());
+        getLines(lines, currPoint, points);
+        for (map<double,set<Point>>::iterator lineIt = lines.begin();
+             lineIt != lines.end(); lineIt++) {
+            //cout << "line point size: " << lineIt->second.size() << endl;
+            //gradient = lineIt->first;
+            if (true) {
+                //!lineDrawnByConnectingPoint(gradient, taken, currPoint)
+                set<Point>::iterator pointIt = lineIt->second.begin();
+                Point fromPoint = currPoint;
                 Point toPoint = Point(0,0);
-                if (pointIt != slopeIt->second.end()) {
-                    fromPoint = *pointIt;
-                    pointIt++;
-                }
-                while (pointIt != slopeIt->second.end()) {
+                while (pointIt != lineIt->second.end()) {
                     toPoint = *pointIt;
                     render_line(scene, fromPoint, toPoint);
                     a.processEvents();
-                    fromPoint = toPoint;
+                    //fromPoint = toPoint;
                     pointIt++;
+                    num++;
+                    //cin >> str;
                 }
-                pair<double,Point> newTaken(slopeIt->first,points.at(0));
-                taken.insert(newTaken);
+                cout << num << endl;
+                num = 0;
+                //pair<double,Point> newTaken(lineIt->first,currPoint);
+                //taken.insert(newTaken);
             }
         }
-        points.erase(points.begin());
-        slopes.clear();
+        //points.erase(points.begin());
     }
 
     auto end = chrono::high_resolution_clock::now();
