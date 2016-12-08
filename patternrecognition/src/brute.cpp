@@ -8,6 +8,7 @@
 #include <chrono>
 #include "Point.h"
 #include <set>
+#include <iterator>
 
 // constants
 static const int SCENE_WIDTH = 512;
@@ -23,46 +24,44 @@ void render_line(QGraphicsScene* scene, const Point& p1, const Point& p2) {
     p1.lineTo(scene, p2);
 }
 
+void keepOnlyEndPoints(const Point& refPoint, set<Point>& points) {
+    Point startPoint = refPoint;
+    Point endPoint = refPoint;
+    for (set<Point>::iterator pointIt = points.begin(); pointIt != points.end(); pointIt++) {
+        if (*pointIt < startPoint) {
+            startPoint = *pointIt;
+        } else if (*pointIt > endPoint) {
+            endPoint = *pointIt;
+        }
+    }
+    points.clear();
+    points.insert(startPoint);
+    points.insert(endPoint);
+}
 
-/**
- * Slope between this point and p
- *
- * If the points are the same, negative infinity is returned
- * If the line between the points is horizontal positive zero is returned
- * If the line between the points is vertical positive infinity is returned
- */
-void getLines(map<double,set<Point>>& lines, const Point& startPoint,
+void getLines(map<double,set<Point>>& lines, const Point& refPoint,
               const vector<Point>& points) {
     lines.clear();
     double gradient;
     unsigned int samePointCount = 0;
-    map<double,set<Point>> tempLines;
     for (vector<Point>::const_iterator pointIt = points.begin();
                  pointIt != points.end(); ++pointIt) {
-        gradient = startPoint.slopeTo(*pointIt);
+        gradient = refPoint.slopeTo(*pointIt);
         if (gradient == -std::numeric_limits<double>::infinity()) {
             samePointCount++;
         } else {
-            tempLines[gradient].insert(*pointIt);
+            lines[gradient].insert(*pointIt);
         }
     }
-    for (map<double,set<Point>>::iterator mapIt = tempLines.begin(); mapIt != tempLines.end(); mapIt++) {
-        if (mapIt->second.size() >= (3 - samePointCount)) {
-            lines[mapIt->first] = mapIt->second;
-        }
-    }
-    /*for (map<double,set<Point>>::iterator mapIt = lines.begin(); mapIt != lines.end(); mapIt++) {
-        if (mapIt->second.size() < (3 - samePointCount)) {
-            lines.erase(mapIt);
-        }
-    }*/
-    /*map<double,set<Point>>::iterator mapIt = lines.begin();
+    map<double,set<Point>>::iterator mapIt = lines.begin();
     while (mapIt != lines.end()) {
         if (mapIt->second.size() < (3 - samePointCount)) {
-            lines.erase(mapIt);
+            mapIt = lines.erase(mapIt);
+        } else {
+            keepOnlyEndPoints(refPoint, mapIt->second);
+            mapIt++;
         }
-        mapIt++;
-    }*/
+    }
 }
 
 bool lineDrawnByConnectingPoint(const double gradient,
@@ -82,7 +81,7 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     // open file
-    string filename = "input100.txt";
+    string filename = "input6400.txt";
     ifstream input;
     input.open(filename);
 
@@ -110,7 +109,7 @@ int main(int argc, char *argv[]) {
     render_points(scene, points);
     view->scale(1, -1); //screen y-axis is inverted
     view->resize(view->sizeHint());
-    view->setWindowTitle("Brute Force Pattern Recognition");
+    view->setWindowTitle("Fast Pattern Recognition");
     view->show();
 
     // sort points by natural order
@@ -118,41 +117,28 @@ int main(int argc, char *argv[]) {
     sort(points.begin(), points.end());
     auto begin = chrono::high_resolution_clock::now();
 
-    //set<pair<double,Point>> taken;
+    set<pair<double,Point>> taken;
     map<double,set<Point>> lines;
     Point currPoint(0,0);
-    string str;
-    int num = 0;
-    //double gradient;
+    Point fromPoint(0,0);
+    Point toPoint(0,0);
+    double gradient;
     while (!points.empty()) {
         currPoint = points.at(0);
         points.erase(points.begin());
         getLines(lines, currPoint, points);
         for (map<double,set<Point>>::iterator lineIt = lines.begin();
              lineIt != lines.end(); lineIt++) {
-            //cout << "line point size: " << lineIt->second.size() << endl;
-            //gradient = lineIt->first;
-            if (true) {
-                //!lineDrawnByConnectingPoint(gradient, taken, currPoint)
-                set<Point>::iterator pointIt = lineIt->second.begin();
-                Point fromPoint = currPoint;
-                Point toPoint = Point(0,0);
-                while (pointIt != lineIt->second.end()) {
-                    toPoint = *pointIt;
-                    render_line(scene, fromPoint, toPoint);
-                    a.processEvents();
-                    //fromPoint = toPoint;
-                    pointIt++;
-                    num++;
-                    //cin >> str;
-                }
-                cout << num << endl;
-                num = 0;
-                //pair<double,Point> newTaken(lineIt->first,currPoint);
-                //taken.insert(newTaken);
+            gradient = lineIt->first;
+            if (!lineDrawnByConnectingPoint(gradient, taken, *lineIt->second.begin())) {
+                fromPoint = *lineIt->second.begin();
+                toPoint = *(++lineIt->second.begin());
+                render_line(scene, fromPoint, toPoint);
+                a.processEvents();
+                pair<double,Point> newTaken(gradient,fromPoint);
+                taken.insert(newTaken);
             }
         }
-        //points.erase(points.begin());
     }
 
     auto end = chrono::high_resolution_clock::now();
