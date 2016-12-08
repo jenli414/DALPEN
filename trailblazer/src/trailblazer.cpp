@@ -5,15 +5,42 @@
 
 #include "costs.h"
 #include "trailblazer.h"
-// TODO: include any other headers you need; remove this comment
+
 using namespace std;
 
+void depthFirstSearchHelper(vector<Vertex*>& path, Vertex* start,
+                                     Vertex* end, bool& foundEnd) {
+    path.push_back(start);
+    start->setColor(YELLOW);
+    if (start != end) {
+        Set<Arc*> arcs = start->arcs;
+        Vertex* nextVertex;
+        start->visited = true;
+        for (Set<Arc*>::iterator arcIt = arcs.begin(); arcIt != arcs.end(); arcIt++) {
+            nextVertex = (*arcIt)->finish;
+            if (!foundEnd && !nextVertex->visited) {
+                depthFirstSearchHelper(path, nextVertex, end, foundEnd);
+            } else if (foundEnd) {
+                break;
+            }
+        }
+        if (!foundEnd) {
+            path.pop_back();
+            start->setColor(GRAY);
+        } else {
+            start->setColor(GREEN);
+        }
+    } else {
+        foundEnd = true;
+        start->setColor(GREEN);
+    }
+}
+
 vector<Node *> depthFirstSearch(BasicGraph& graph, Vertex* start, Vertex* end) {
-    // TODO: implement this function; remove these comments
-    //       (The function body code provided below is just a stub that returns
-    //        an empty vector so that the overall project will compile.
-    //        You should remove that code and replace it with your implementation.)
+    bool foundEnd = false;
     vector<Vertex*> path;
+    depthFirstSearchHelper(path, start, end, foundEnd);
+    graph.resetData();
     return path;
 }
 
