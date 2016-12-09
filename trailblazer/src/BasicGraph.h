@@ -174,7 +174,7 @@ public:
 ostream& operator<<(ostream& out, const Arc& arc);
 
 /*
- * You can refer to an Arc as an Edge if you prefer.
+ * You can refer to an← dist[u] + length(u, v) Arc as an Edge if you prefer.
  */
 #define Edge Arc
 
