@@ -134,11 +134,112 @@ vector<Node *> dijkstrasAlgorithm(BasicGraph& graph, Vertex* start, Vertex* end)
     return path;
 }
 
+
+
+/*
+ * Ganska säker på att den inte alltid ger den bästa vägen,
+ * men den följer A*-algoritmen (Fö23)
+ */
 vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
-    // TODO: implement this function; remove these comments
-    //       (The function body code provided below is just a stub that returns
-    //        an empty vector so that the overall project will compile.
-    //        You should remove that code and replace it with your implementation.)
+    graph.resetData();
+    PriorityQueue<Vertex*> vertexQueue;
+    Set<Vertex*> vertices = graph.getVertexSet();
+    for (Set<Vertex*>::iterator vertexIt = vertices.begin();
+         vertexIt != vertices.end(); vertexIt++) {
+        vertexQueue.enqueue(*vertexIt, numeric_limits<double>::infinity());
+        (*vertexIt)->cost = numeric_limits<double>::infinity();
+    }
+    double priority;
+    double altCost;
+    Vertex* currVertex;
+    Set<Vertex*> currNeighbors;
+    start->cost = 0;
+    vertexQueue.changePriority(start, 0);
+    while (!vertexQueue.isEmpty()) {
+        currVertex = vertexQueue.dequeue();
+        currVertex->visited = true;
+        currVertex->setColor(GREEN);
+        if (currVertex == end){
+            break;
+        }
+        currNeighbors = graph.getNeighbors(currVertex);
+        // Calculates and updates lowest costs and changes
+        // the priority of currVertex neighbors if needed.
+        for (Set<Vertex*>::iterator neighborIt = currNeighbors.begin();
+             neighborIt != currNeighbors.end(); neighborIt++) {
+            altCost = currVertex->cost + graph.getEdge(currVertex, *neighborIt)->cost;
+            if (!(*neighborIt)->visited && (altCost < (*neighborIt)->cost)) {
+                (*neighborIt)->cost = altCost;
+                (*neighborIt)->previous = currVertex;
+                priority = altCost + (*neighborIt)->heuristic(end);
+                vertexQueue.changePriority(*neighborIt,priority);
+                (*neighborIt)->setColor(YELLOW);
+            }
+        }
+    }
     vector<Vertex*> path;
+    bool foundEnd = end->previous != nullptr;
+    if (foundEnd) {
+        getPath(path, start, end);
+    }
     return path;
 }
+
+
+
+/*
+ * Söker alla vägar och retunerar den bästa!
+ */
+vector<Node *> aStarBEST(BasicGraph& graph, Vertex* start, Vertex* end) {
+    graph.resetData();
+    PriorityQueue<Vertex*> vertexQueue;
+    Vertex* currVertex;
+    Set<Vertex*> vertices = graph.getVertexSet();
+    for (Set<Vertex*>::iterator vertexIt = vertices.begin();
+         vertexIt != vertices.end(); vertexIt++) {
+        (*vertexIt)->cost = numeric_limits<double>::infinity();
+        vertexQueue.enqueue(*vertexIt, numeric_limits<double>::infinity());
+    }
+    Set<Vertex*> currNeighbors;
+    double altCost;
+    double priority;
+    start->cost =0;
+    vertexQueue.changePriority(start,0);
+    while (!vertexQueue.isEmpty()){
+        currVertex = vertexQueue.dequeue();
+        if ((currVertex->cost < end->cost)){
+            currVertex->visited = true;
+            (currVertex)->setColor(GREEN);
+            currNeighbors = graph.getNeighbors(currVertex);
+            for (Set<Vertex*>::iterator neighborIt = currNeighbors.begin();
+                 neighborIt != currNeighbors.end(); neighborIt++){
+                altCost = currVertex->cost + graph.getEdge(currVertex, *neighborIt)->cost;
+                if ((altCost < (*neighborIt)->cost)) {
+                    (*neighborIt)->cost = altCost;
+                    (*neighborIt)->previous = currVertex;
+                    if (!(*neighborIt)->visited){
+                        priority = altCost + (*neighborIt)->heuristic(end);
+                        vertexQueue.changePriority(*neighborIt, priority);
+                        (*neighborIt)->setColor(YELLOW);
+                    }
+                }
+            }
+       }
+    }
+    vector<Vertex*> path;
+    bool foundEnd = end->previous != nullptr;
+    if (foundEnd) {
+        //end->setColor(GREEN);
+        getPath(path, start, end);
+    }
+    return path;
+}
+
+
+
+
+
+
+
+
+
