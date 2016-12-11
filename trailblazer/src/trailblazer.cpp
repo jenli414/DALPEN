@@ -42,7 +42,22 @@ vector<Node *> depthFirstSearch(BasicGraph& graph, Vertex* start, Vertex* end) {
     return path;
 }
 
-void getPath(vector<Vertex*>& path, Vertex* start, Vertex* end) {
+vector<Vertex*> getPath(Vertex* start, Vertex* end) {
+    vector<Vertex*> path;
+    bool foundEnd = end->previous != nullptr;
+    if (foundEnd) {
+        Vertex* backtracker = end;
+        while (backtracker != start) {
+            path.push_back(backtracker);
+            backtracker = backtracker->previous;
+        }
+        path.push_back(start);
+        reverse(path.begin(), path.end());
+    }
+    return path;
+}
+
+void getExistingPath(vector<Vertex*>& path, Vertex* start, Vertex* end) {
     Vertex* backtracker = end;
     while (backtracker != start) {
         path.push_back(backtracker);
@@ -81,12 +96,7 @@ vector<Node *> breadthFirstSearch(BasicGraph& graph, Vertex* start, Vertex* end)
             }
         }
     }
-    vector<Vertex*> path;
-    bool foundEnd = end->previous != nullptr;
-    if (foundEnd) {
-        getPath(path, start, end);
-    }
-    return path;
+    getPath(start, end);
 }
 
 vector<Node *> dijkstrasAlgorithm(BasicGraph& graph, Vertex* start, Vertex* end) {
@@ -129,10 +139,57 @@ vector<Node *> dijkstrasAlgorithm(BasicGraph& graph, Vertex* start, Vertex* end)
     bool foundEnd = end->previous != nullptr;
     if (foundEnd) {
         end->setColor(GREEN);
-        getPath(path, start, end);
+        getExistingPath(path, start, end);
     }
     return path;
 }
+
+
+
+
+/*
+ * Ger EXAKT samma utdata som utdataexemplena
+ */
+vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
+    graph.resetData();
+    PriorityQueue<Vertex*> vertexQueue;
+    double priority;
+    double altCost;
+    Vertex* currVertex;
+    Set<Vertex*> currNeighbors;
+    start->cost = 0;
+    start->visited = true;
+    vertexQueue.enqueue(start, 0);
+    while (!vertexQueue.isEmpty()) {
+        currVertex = vertexQueue.dequeue();
+        currVertex->setColor(GREEN);
+        if (currVertex == end){
+            break;
+        }
+        currNeighbors = graph.getNeighbors(currVertex);
+        // Calculates and updates lowest costs and changes
+        // the priority of currVertex neighbors if needed.
+        for (Set<Vertex*>::iterator neighborIt = currNeighbors.begin();
+             neighborIt != currNeighbors.end(); neighborIt++) {
+            altCost = currVertex->cost + graph.getEdge(currVertex, *neighborIt)->cost;
+            priority = altCost + (*neighborIt)->heuristic(end);
+            if (!(*neighborIt)->visited){
+                (*neighborIt)->cost = altCost;
+                (*neighborIt)->previous = currVertex;
+                (*neighborIt)->visited = true;
+                (*neighborIt)->setColor(YELLOW);
+                vertexQueue.enqueue(*neighborIt,priority);
+            } else if (altCost < (*neighborIt)->cost) {
+                    (*neighborIt)->cost = altCost;
+                    (*neighborIt)->previous = currVertex;
+                     vertexQueue.changePriority(*neighborIt, priority);
+            }
+        }
+    }
+    return getPath(start, end);
+}
+
+
 
 
 
@@ -140,7 +197,7 @@ vector<Node *> dijkstrasAlgorithm(BasicGraph& graph, Vertex* start, Vertex* end)
  * Ganska säker på att den inte alltid ger den bästa vägen,
  * men den följer A*-algoritmen (Fö23)
  */
-vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
+vector<Node *> aStarQueueAll(BasicGraph& graph, Vertex* start, Vertex* end) {
     graph.resetData();
     PriorityQueue<Vertex*> vertexQueue;
     Set<Vertex*> vertices = graph.getVertexSet();
@@ -154,10 +211,10 @@ vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
     Vertex* currVertex;
     Set<Vertex*> currNeighbors;
     start->cost = 0;
+    start->visited = true;
     vertexQueue.changePriority(start, 0);
     while (!vertexQueue.isEmpty()) {
         currVertex = vertexQueue.dequeue();
-        currVertex->visited = true;
         currVertex->setColor(GREEN);
         if (currVertex == end){
             break;
@@ -171,8 +228,10 @@ vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
             if (!(*neighborIt)->visited && (altCost < (*neighborIt)->cost)) {
                 (*neighborIt)->cost = altCost;
                 (*neighborIt)->previous = currVertex;
+                (*neighborIt)->visited = true;
                 priority = altCost + (*neighborIt)->heuristic(end);
                 vertexQueue.changePriority(*neighborIt,priority);
+
                 (*neighborIt)->setColor(YELLOW);
             }
         }
@@ -180,7 +239,7 @@ vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
     vector<Vertex*> path;
     bool foundEnd = end->previous != nullptr;
     if (foundEnd) {
-        getPath(path, start, end);
+        //getPath(path, start, end);
     }
     return path;
 }
@@ -230,7 +289,7 @@ vector<Node *> aStarBEST(BasicGraph& graph, Vertex* start, Vertex* end) {
     bool foundEnd = end->previous != nullptr;
     if (foundEnd) {
         //end->setColor(GREEN);
-        getPath(path, start, end);
+        //getPath(path, start, end);
     }
     return path;
 }
