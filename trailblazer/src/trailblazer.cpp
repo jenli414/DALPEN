@@ -230,8 +230,12 @@ vector<Node *> aStarQueueAll(BasicGraph& graph, Vertex* start, Vertex* end) {
                 (*neighborIt)->previous = currVertex;
                 (*neighborIt)->visited = true;
                 priority = altCost + (*neighborIt)->heuristic(end);
+<<<<<<< HEAD
                 vertexQueue.changePriority(*neighborIt,priority);
 
+=======
+                vertexQueue.changePriority(*neighborIt, priority);
+>>>>>>> cb3c1ec37d9e94a924c7995fb08d4d38fb38abcc
                 (*neighborIt)->setColor(YELLOW);
             }
         }
