@@ -172,7 +172,7 @@ vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
                 (*neighborIt)->cost = altCost;
                 (*neighborIt)->previous = currVertex;
                 priority = altCost + (*neighborIt)->heuristic(end);
-                vertexQueue.changePriority(*neighborIt,priority);
+                vertexQueue.changePriority(*neighborIt, priority);
                 (*neighborIt)->setColor(YELLOW);
             }
         }
