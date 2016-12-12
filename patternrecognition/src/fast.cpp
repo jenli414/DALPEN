@@ -1,3 +1,7 @@
+/*
+ * jenli414 och sabse455
+ */
+
 #include <QApplication>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -24,10 +28,14 @@ void render_line(QGraphicsScene* scene, const Point& p1, const Point& p2) {
     p1.lineTo(scene, p2);
 }
 
+/*
+ * Iterates over a set of Points and keeps only the "smallest" and "largest".
+ */
 void keepOnlyEndPoints(set<Point>& points) {
     Point startPoint = *points.begin();
     Point endPoint = *points.begin();
-    for (set<Point>::iterator pointIt = points.begin(); pointIt != points.end(); pointIt++) {
+    for (set<Point>::iterator pointIt = points.begin();
+         pointIt != points.end(); pointIt++) {
         if (*pointIt < startPoint) {
             startPoint = *pointIt;
         } else if (*pointIt > endPoint) {
@@ -39,6 +47,10 @@ void keepOnlyEndPoints(set<Point>& points) {
     points.insert(endPoint);
 }
 
+/*
+ * Puts lines with 4 or more points in lines by pairing the gradient with
+ * the start and end point of that line.
+ */
 void getLines(map<double,set<Point>>& lines, vector<Point>& points) {
     lines.clear();
     Point refPoint = points.at(0);
@@ -69,12 +81,16 @@ void getLines(map<double,set<Point>>& lines, vector<Point>& points) {
     }
 }
 
-bool lineDrawnByConnectingPoint(const double gradient,
-                                const set<pair<double,Point>>& taken,
-                                const Point& point) {
+/*
+ * UTÖKNING - E8:
+ * Returns true if the given line (gradient from point) has already been drawn.
+ */
+bool alreadyDrawn(const set<pair<double,Point>>& taken, const double gradient,
+                  const Point& point) {
     for (set<pair<double,Point>>::const_iterator takenIt = taken.begin();
          takenIt != taken.end(); takenIt++) {
-        if (takenIt->first == gradient && point.slopeTo(takenIt->second) == gradient) {
+        if (takenIt->first == gradient &&
+                point.slopeTo(takenIt->second) == gradient) {
             return true;
         }
     }
@@ -86,7 +102,7 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     // open file
-    string filename = "input6400.txt";
+    string filename = "input12800.txt";
     ifstream input;
     input.open(filename);
 
@@ -132,8 +148,8 @@ int main(int argc, char *argv[]) {
         for (map<double,set<Point>>::iterator lineIt = lines.begin();
              lineIt != lines.end(); lineIt++) {
             gradient = lineIt->first;
-            if (!lineDrawnByConnectingPoint(gradient, taken, *lineIt->second.begin())) {
-                fromPoint = *lineIt->second.begin();
+            if (!alreadyDrawn(taken, gradient, *lineIt->second.begin())) {
+                fromPoint = *(lineIt->second.begin());
                 toPoint = *(++lineIt->second.begin());
                 render_line(scene, fromPoint, toPoint);
                 a.processEvents();

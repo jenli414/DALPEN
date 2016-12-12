@@ -4,6 +4,7 @@
  * in a file using Qt.
  */
 
+/*
 #include <QApplication>
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -92,5 +93,6 @@ int main(int argc, char *argv[]) {
 
     return a.exec(); // start Qt event loop
 }
+*/
 
 

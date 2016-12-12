@@ -46,7 +46,7 @@ int main() {
     readDictionary(dictionary);
     unsigned int shortestWord, longestWord = 0;
     getWordLengthLimits(dictionary, shortestWord, longestWord);
-    cout << "Welcome to plain Hangman." << endl << endl;
+    cout << "Welcome to EvilHangman." << endl << endl;
     char userAction = 's';
     bool run = true;
     while(run) {//adasd
@@ -275,10 +275,14 @@ void askForGuess(set<char>& alreadyGuessedLetters, char& guess) {
  */
 void findLargestWordFamily(set<string>& remainingWords, const int& uNumOfGuesses,
                            const char& guess, const int& wordLength) {
+    string currentWord;
     map<string,set<string>> wordFamilies;
+    set<char> uniqueChars;
+    map<string,set<set<char>>> uniqueCharsMap;
     for (set<string>::iterator wordIt = remainingWords.begin();
          wordIt != remainingWords.end(); ++wordIt) {
-        string currentWord = *wordIt;
+        uniqueChars.clear();
+        currentWord = *wordIt;
         stringstream keyStream;
         for (int i = 0; i < wordLength; ++i) {
             if (currentWord[i] == guess) {
@@ -286,8 +290,10 @@ void findLargestWordFamily(set<string>& remainingWords, const int& uNumOfGuesses
             }
             else {
                 keyStream << '-';
+                uniqueChars.insert(currentWord[i]);
             }
         }
+        uniqueCharsMap[keyStream.str()].insert(uniqueChars);
         wordFamilies[keyStream.str()].insert(currentWord);
     }
     string emptyFamily;
@@ -295,16 +301,17 @@ void findLargestWordFamily(set<string>& remainingWords, const int& uNumOfGuesses
     if (uNumOfGuesses == 1 && wordFamilies.count(emptyFamily)) {
         remainingWords = (*wordFamilies.find(emptyFamily)).second;
     } else {
-        unsigned int currLargestSize = 0;
-        for (map<string,set<string>>::iterator mapIt = wordFamilies.begin();
-             mapIt != wordFamilies.end(); ++mapIt) {
-            if (mapIt->second.size() > currLargestSize) {
-                currLargestSize = mapIt->second.size();
-                remainingWords = mapIt->second;
+        unsigned int currMostUniqueCharSets = 0;
+        for (map<string,set<set<char>>>::iterator mapIt = uniqueCharsMap.begin();
+             mapIt != uniqueCharsMap.end(); ++mapIt) {
+            if (mapIt->second.size() > currMostUniqueCharSets) {
+                currMostUniqueCharSets = mapIt->second.size();
+                remainingWords = wordFamilies[mapIt->first];
             }
         }
     }
 }
+
 
 
 /*
