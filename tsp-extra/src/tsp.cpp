@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     while (input >> x >> y) {
         Point p(x, y);
         //tour.insertNearest(p);
-        tour.insertSmallest(p);
+        tour.insertNearest(p);
         //uncomment the 4 lines below to animate
         //tour.draw(scene);
         //std::chrono::milliseconds dura(50);
@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
         //a.processEvents();
     }
     input.close();
+    tour.removeIntersections();
 
     // print tour to standard output
     cout << "Tour distance: " << std::fixed << std::setprecision(4)

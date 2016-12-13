@@ -123,9 +123,7 @@ void Tour::insertSmallest(const Point& p)
         Node* bestNode = m_firstNode;
         Node* nextNode = m_firstNode->next;
         double originalDistance = m_firstNode->point.distanceTo(nextNode->point);
-        double newDistance = m_firstNode->ponextNode = currNode->next;
-        originalDistance = currNode->point.distanceTo(nextNode->point);
-        newDistance = currNoint.distanceTo(p) +
+        double newDistance = m_firstNode->point.distanceTo(p) +
                 p.distanceTo(nextNode->point);
         double leastAddedDistance = newDistance - originalDistance;
         Node* currNode = nextNode;
@@ -149,71 +147,98 @@ void Tour::insertSmallest(const Point& p)
 // Removes intersections until no intersections remain.
 void Tour::removeIntersections() {
     if (size() > 3) {
-        Node* n2 = m_firstNode->next->next;
-        // first case
-        while (n2->next != m_firstNode) {
-            if (removeIntersectionsHelper(m_firstNode, n2)) {
-                return removedIntersections();
-            } else {
-                n2 = n2->next;
-            }
-        }
-        Node* n1 = m_firstNode->next;
-        n2 = n1->next->next;
-        // go around
-        while(n1 != m_firstNode) {
-            while (n2->next != n1) {
-                if (removeIntersectionsHelper(n1, n2)) {
-                    return removeIntersections();
-                } else {
-                    n2 = n2->next;
-                }
-            }
-            n1 = n1->next;
-            n2 = n1->next->next;
+        bool checkAgain = true;
+        while(checkAgain) {
+            checkAgain = removeIntersectionsHelper();
         }
     }
 }
 
-// Removes intersection between line between n1->point and n1->next->point and
-// line between n2->point and n1->next->point if needed.
-bool Tour::removeIntersectionsHelper(Node* n1, Node* n2) {
-    if (intersects(n1,n2)) {
-        n1->next->next = n2->next;
-        reverseNodes(n1->next,n2);
-        n1->next = n2;
-        return true;
-    } else {
-        return false;
+// Checks for intersections.
+// If found, removes one and returns true, else returns false.
+bool Tour::removeIntersectionsHelper() {
+    Node* n1 = m_firstNode;
+    Node* n2;
+    Node* tempNode;
+    unsigned int tourSize = size();
+    for (unsigned int i = 0; i < tourSize; i++) {
+        n2 = (n1->next)->next;
+        for (unsigned int j = 0; j < tourSize - 2; j++) {
+            if (intersects(n1, n2)) {
+                cout << "intersects" << endl;
+                tempNode = n2->next;
+                reverseNodes(n1->next, n2);
+                (n1->next)->next = tempNode;
+                n1->next = n2;
+                return true;
+            }
+            n2 = n2->next;
+        }
+        n1 = n1->next;
     }
+    return false;
 }
 
 // Returns true if line between n1->point and n1->next->point intersects with
 // line between n2->point and n1->next->point
 bool Tour::intersects(Node* n1, Node* n2) {
+    cout << "checks intersect" << endl;
     Point p1 = n1->point;
-    Point p2 = n1->next->point;
+    Point p2 = (n1->next)->point;
     Point p3 = n2->point;
-    Point p4 = n2->next->point;
+    Point p4 = (n2->next)->point;
+    bool connectsAtEndPoints1 = p1.x == p3.x && p1.y == p3.y;
+    bool connectsAtEndPoints2 = p1.x == p4.x && p1.y == p4.y;
+    bool connectsAtEndPoints3 = p2.x == p3.x && p2.y == p3.y;
+    bool connectsAtEndPoints4 = p2.x == p4.x && p2.y == p4.y;
+    if (connectsAtEndPoints1 || connectsAtEndPoints2 || connectsAtEndPoints3 || connectsAtEndPoints4) {
+        return false;
+    }
+    double gradient1 = (p1.y-p2.y)/(p1.x-p2.x);
+    double gradient2 = (p3.y-p4.y)/(p3.x-p4.x);
+    if (gradient1 != gradient2) {
+        double m1 = p1.y - (gradient1*p1.x);
+        double m2 = p3.y - (gradient2*p3.x);
+        double xIntersection = (m2-m1)/(gradient1-gradient2);
+        double yIntersection = (m1*gradient2-m2*gradient1)/(gradient2-gradient1);
+        bool xIntersectionInRange1 = false;
+        if (p1.x > p2.x) {
+            xIntersectionInRange1 = (xIntersection < p1.x) && (xIntersection > p2.x);
+        } else if (p2.x > p1.x) {
+            xIntersectionInRange1 = (xIntersection < p2.x) && (xIntersection > p1.x);
+        }
+        bool xIntersectionInRange2 = false;
+        if (p3.x > p4.x) {
+            xIntersectionInRange2 = (xIntersection < p3.x) && (xIntersection > p4.x);
+        } else if (p4.x > p3.x) {
+            xIntersectionInRange2 = (xIntersection < p4.x) && (xIntersection > p3.x);
+        }
+        bool yIntersectionInRange1 = false;
+        if (p1.y > p2.y) {
+            yIntersectionInRange1 = (yIntersection < p1.y) && (yIntersection > p2.y);
+        } else if (p2.y > p1.y) {
+            yIntersectionInRange1 = (yIntersection < p2.y) && (yIntersection > p1.y);
+        }
+        bool yIntersectionInRange2 = false;
+        if (p3.y > p4.y) {
+            yIntersectionInRange2 = (yIntersection < p3.y) && (yIntersection > p4.y);
+        } else if (p4.y > p3.y) {
+            yIntersectionInRange2 = (yIntersection < p4.y) && (yIntersection > p3.y);
+        }
+        return xIntersectionInRange1 && xIntersectionInRange2 && yIntersectionInRange1 && yIntersectionInRange2;
+    } else {
+        return false;
+    }
 }
 
 //Reverses direction of nodes from previousNode to lastNode.
-void reverseNodes(Node* previousNode, Node* lastNode) {
+void Tour::reverseNodes(Node* previousNode, Node* lastNode) {
     Node* currNode = previousNode->next;
     if (currNode != lastNode) {
         reverseNodes(currNode, lastNode);
     }
     currNode->next = previousNode;
 }
-
-/*Node* reverseNodesHelper(Node* previousNode, Node* lastNode) {
-    Node* currNode = previousNode->next;
-    if (currNode != lastNode) {
-        reverseNodesHelper(currNode, lastNode);
-    }
-    currNode->next = previousNode;
-}*/
-
 
 
 

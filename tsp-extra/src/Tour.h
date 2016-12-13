@@ -56,8 +56,34 @@ public:
      */
     void insertSmallest(const Point& p);
 
+
+    /*
+     *
+     */
+    void removeIntersections();
+
+
 private:
     Node* m_firstNode = nullptr; // Pointer to the front node in the Tour
+
+
+    /*
+     *
+     */
+    bool removeIntersectionsHelper();
+
+
+    /*
+     *
+     */
+    bool intersects(Node* n1, Node* n2);
+
+
+    /*
+     *
+     */
+    void reverseNodes(Node* previousNode, Node* lastNode);
+
 };
 
 #endif // TOUR_H
