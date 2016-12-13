@@ -58,7 +58,7 @@ public:
 
 
     /*
-     *
+     * Removes intersections until no intersections remain in Tour.
      */
     void removeIntersections();
 
@@ -68,21 +68,33 @@ private:
 
 
     /*
-     *
+     * Checks for intersections and if encountered, removes it and
+     * returns true. If none found in entire Tour, returns false.
      */
     bool removeIntersectionsHelper();
 
+    /*
+     * Returns true if line between node->point and (node->next)->point is vertical.
+     */
+    bool isVertical(const Node* node);
 
     /*
-     *
+     * Returns true if the point (xIntersection, yIntersection) is on the line
+     * between node->point and (node->next)->point.
      */
-    bool intersects(Node* n1, Node* n2);
+    bool isInRange(const Node* node, const double& xIntersection, const double& yIntersection);
+
+    /*
+     * Returns true if line between n1->point and (n1->next)->point intersects with
+     * line between n2->point and (n1->next)->point.
+     */
+    bool intersects(const Node* n1, const Node* n2);
 
 
     /*
-     *
+     * Reverses direction of nodes from previousNode->next to lastNode.
      */
-    void reverseNodes(Node* previousNode, Node* lastNode);
+    void reverseNodes(Node*& previousNode, Node*& lastNode);
 
 };
 

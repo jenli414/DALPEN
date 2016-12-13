@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
         //a.processEvents();
     }
     input.close();
+    // Remove possible intersections
     tour.removeIntersections();
 
     // print tour to standard output
