@@ -56,11 +56,33 @@ public:
      */
     void insertSmallest(const Point& p);
 
+
+    /*
+     * Gets the two nodes in remainingNodes that has the farthest distance from
+     * each other and inserts them as the tour. It also removes these two nodes
+     * from the remainingNodes vector.
+     */
     void insertFarthestNodes(vector<Node*>& remainingNodes);
 
+
+    /*
+     * Returns the node in remainingNodes with the longest distance from the
+     * nearest tour node. It also erases that node from the remainingNodes vector.
+     */
+    Node* getFarthestNode(vector<Node*>& remainingNodes);
+
+
+    /*
+     * Assumes the Tour is empty at start. Inserts all nodes in remainingNodes in
+     * the tour by fallowing the farthest insertion algorithm, i.e. starting with
+     * the two nodes that has the farthest distance from each other, then adding the
+     * node that has the farthest distance from the nearest tour node
+     * in the tour position that gives the minimun increase in tour length.
+     */
     void farthestInsertion(vector<Node*>& remainingNodes);
 
-    Node* getFarthestNode(vector<Node*>& remainingNodes);
+
+
 
 private:
     Node* m_firstNode = nullptr; // Pointer to the front node in the Tour

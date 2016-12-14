@@ -18,7 +18,7 @@
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
-    string filename = "bier127.txt";
+    string filename = "tsp100.txt";
     ifstream input;
     input.open(filename);
 
@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
     vector<Node*> tourNodes;
     while (input >> x >> y) {
         Point p(x, y);
-        //tour.insertNearest(p);
         tourNodes.push_back(new Node(p));
+        //tour.insertNearest(p);
         //tour.insertSmallest(p);
         //uncomment the 4 lines below to animate
         //tour.draw(scene);
