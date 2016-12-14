@@ -6,6 +6,8 @@
 #include "Tour.h"
 #include "Node.h"
 #include "Point.h"
+#include "set"
+
 
 Tour::Tour() {}
 
@@ -42,11 +44,10 @@ void Tour::draw(QGraphicsScene* scene) const
     if (m_firstNode != nullptr) {
         m_firstNode->point.draw(scene);
         Node* currNode = m_firstNode->next;
-        Node* nextNode;
         m_firstNode->point.drawTo(currNode->point, scene);
         while (currNode != m_firstNode) {
             currNode->point.draw(scene);
-            nextNode = currNode->next;
+            Node* nextNode = currNode->next;
             currNode->point.drawTo(nextNode->point, scene);
             currNode = currNode->next;
         }
@@ -77,9 +78,10 @@ double Tour::distance() const
     } else {
         double distance = 0;
         Node* currNode = m_firstNode->next;
+        Node* nextNode;
         distance += m_firstNode->point.distanceTo(currNode->point);
         while (currNode != m_firstNode) {
-            Node* nextNode = currNode->next;
+            nextNode = currNode->next;
             distance += currNode->point.distanceTo(nextNode->point);
             currNode = currNode->next;
         }
@@ -94,8 +96,7 @@ void Tour::insertNearest(const Point& p)
     if (m_firstNode == nullptr) {
         m_firstNode = newNode;
         newNode->next = newNode;
-    }
-    else {
+    } else {
         Node* nearestNode = m_firstNode;
         double shortestDistance = m_firstNode->point.distanceTo(p);
         Node* currNode = m_firstNode->next;
@@ -119,8 +120,7 @@ void Tour::insertSmallest(const Point& p)
     if (m_firstNode == nullptr) {
         m_firstNode = newNode;
         newNode->next = newNode;
-    }
-    else {
+    } else {
         Node* bestNode = m_firstNode;
         Node* nextNode = m_firstNode->next;
         double originalDistance = m_firstNode->point.distanceTo(nextNode->point);
@@ -145,133 +145,33 @@ void Tour::insertSmallest(const Point& p)
     }
 }
 
-void Tour::removeIntersections() {
-    if (size() > 3) {
-        bool checkAgain = true;
-        while(checkAgain) {
-            checkAgain = removeIntersectionsHelper();
-        }
-    }
+void Tour::insertPoint(const Point& p, vector<Node*>& tourNodes){
+    tourNodes.push_back(new Node(p));
 }
 
-bool Tour::removeIntersectionsHelper() {
-    Node* n1 = m_firstNode;
-    Node* n2;
-    Node* tempNodePtr;
-    unsigned int tourSize = size();
-    for (unsigned int i = 0; i < tourSize; i++) {
-        n2 = (n1->next)->next;
-        for (unsigned int j = 0; j < tourSize - 3; j++) {
-            if (intersects(n1, n2)) {
-                tempNodePtr = n2->next;
-                reverseNodes(n1->next, n2);
-                (n1->next)->next = tempNodePtr;
-                n1->next = n2;
-                return true;
+
+
+void Tour::makeFarthestStartNodes(vector<Node*>& tourNodes) {
+    int tourSize = tourNodes.size();
+    Node* currRefNode;
+    double farthestDistace = 0;
+    double currDistance;
+    vector<Node*>::iterator startIt;
+    vector<Node*>::iterator endIt;
+    for (int i = 0; i < tourSize; i++) {
+        currRefNode = tourNodes.at(i);
+        for (int j = i+1; j < tourSize; j++) {
+            currDistance = currRefNode->point.distanceTo(tourNodes.at(i)->point);
+            if (abs(farthestDistace) < abs(currDistance)) {
+                farthestDistace = currDistance;
+                startIt = tourNodes.begin() + i;
+                endIt = startIt + j;
+                m_firstNode = tourNodes.at(i);
+                m_firstNode->next = tourNodes.at(j);
             }
-            n2 = n2->next;
         }
-        n1 = n1->next;
     }
-    return false;
+   tourNodes.erase(startIt);
+   tourNodes.erase(endIt);
+   m_firstNode->next->next = m_firstNode;
 }
-
-bool Tour::isVertical(const Node* node) const {
-    return node->point.x == (node->next)->point.x;
-}
-
-bool Tour::isHorizontal(const Node* node) const {
-    return node->point.y == (node->next)->point.y;
-}
-
-bool Tour::isInRange(const Node* node, const double& xIntersection,
-                     const double& yIntersection) const{
-    Point a1 = node->point;
-    Point a2 = (node->next)->point;
-    bool xIntersectionInRange;
-    bool yIntersectionInRange;
-    if (isVertical(node)) {
-        xIntersectionInRange = (xIntersection == a1.x);
-    } else if (a1.x > a2.x) {
-        xIntersectionInRange = (xIntersection <= a1.x) &&
-                (xIntersection >= a2.x);
-    } else {
-        xIntersectionInRange = (xIntersection <= a2.x) &&
-                (xIntersection >= a1.x);
-    }
-    if (isHorizontal(node)) {
-        yIntersectionInRange = (a1.y == yIntersection);
-    } else if (a1.y > a2.y) {
-        yIntersectionInRange = (yIntersection <= a1.y) &&
-                (yIntersection >= a2.y);
-    } else {
-        yIntersectionInRange = (yIntersection <= a2.y) &&
-                (yIntersection >= a1.y);
-    }
-    return yIntersectionInRange && xIntersectionInRange;
-}
-
-bool Tour::intersects(const Node* n1, const Node* n2) const {
-    Point a1 = n1->point;
-    Point a2 = (n1->next)->point;
-    Point b1 = n2->point;
-    Point b2 = (n2->next)->point;
-    double k1 = (a1.y-a2.y)/(a1.x-a2.x);
-    double k2 = (b1.y-b2.y)/(b1.x-b2.x);
-    double m1 = a1.y-(k1*a1.x);
-    double m2 = b1.y-(k2*b1.x);
-    double xIntersection;
-    double yIntersection;
-    if (k1 == k2) {
-        return false;
-    } else if (isVertical(n1)) {
-        xIntersection = a1.x;
-    } else if (isVertical(n2)) {
-        xIntersection = b1.x;
-    } else {
-        xIntersection = (m2-m1)/(k1-k2);
-    }
-    yIntersection = k1 * xIntersection + m1;
-    return isInRange(n1, xIntersection, yIntersection) &&
-            isInRange(n2, xIntersection, yIntersection);
-}
-
-void Tour::reverseNodes(Node*& previousNode, Node*& lastNode) {
-    Node* currNode = previousNode->next;
-    if (currNode != lastNode) {
-        reverseNodes(currNode, lastNode);
-    }
-    currNode->next = previousNode;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
