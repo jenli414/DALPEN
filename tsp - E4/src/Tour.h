@@ -56,13 +56,11 @@ public:
      */
     void insertSmallest(const Point& p);
 
-    void insertPoint(const Point& p, vector<Node*>& tourPoints);
+    void insertFarthestNodes(vector<Node*>& remainingNodes);
 
-    void makeFarthestStartNodes(vector<Node*>& tourPoints);
+    void farthestInsertion(vector<Node*>& remainingNodes);
 
-    void farthestInsertion(vector<Node*>& tourNodes);
-
-    Node* getFarthestNode(vector<Node*>& tourNodes);
+    Node* getFarthestNode(vector<Node*>& remainingNodes);
 
 private:
     Node* m_firstNode = nullptr; // Pointer to the front node in the Tour

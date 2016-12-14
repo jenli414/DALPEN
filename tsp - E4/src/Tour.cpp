@@ -91,8 +91,7 @@ double Tour::distance() const{
 }
 
 
-void Tour::insertNearest(const Point& p)
-{
+void Tour::insertNearest(const Point& p){
     Node* newNode = new Node(p);
     if (m_firstNode == nullptr) {
         m_firstNode = newNode;
@@ -115,7 +114,7 @@ void Tour::insertNearest(const Point& p)
 }
 
 
-void Tour::insertSmallest(const Point& p){
+void Tour::insertSmallest(const Point& p) {
     Node* newNode = new Node(p);
     if (m_firstNode == nullptr) {
         m_firstNode = newNode;
@@ -145,36 +144,32 @@ void Tour::insertSmallest(const Point& p){
     }
 }
 
-void Tour::insertPoint(const Point& p, vector<Node*>& tourNodes){
-    tourNodes.push_back(new Node(p));
-}
 
 
-
-void Tour::makeFarthestStartNodes(vector<Node*>& tourNodes) {
-    int nodeAmount = tourNodes.size();
+void Tour::insertFarthestNodes(vector<Node*>& remainingNodes) {
+    int nodeAmount = remainingNodes.size();
     double farthestDistance = -1;
     double currDistance;
     Node* currRefNode;
     for (int i = 0; i < nodeAmount; i++) {
-        currRefNode = tourNodes.at(i);
+        currRefNode = remainingNodes.at(i);
         for (int j = i+1; j < nodeAmount; j++) {
-            currDistance = currRefNode->point.distanceTo(tourNodes.at(j)->point);
+            currDistance = currRefNode->point.distanceTo(remainingNodes.at(j)->point);
             if (abs(farthestDistance) < abs(currDistance)) {
                 farthestDistance = currDistance;
-                m_firstNode = tourNodes.at(i);
-                m_firstNode->next = tourNodes.at(j);
+                m_firstNode = remainingNodes.at(i);
+                m_firstNode->next = remainingNodes.at(j);
             }
         }
    }
    m_firstNode->next->next = m_firstNode;
-   tourNodes.erase(find(tourNodes.begin(), tourNodes.end(), m_firstNode));
-   tourNodes.erase(find(tourNodes.begin(), tourNodes.end(), m_firstNode->next));
+   remainingNodes.erase(find(remainingNodes.begin(), remainingNodes.end(), m_firstNode));
+   remainingNodes.erase(find(remainingNodes.begin(), remainingNodes.end(), m_firstNode->next));
 }
 
 
 void Tour::farthestInsertion(vector<Node*>& remainingNodes){
-    makeFarthestStartNodes(remainingNodes);
+    insertFarthestNodes(remainingNodes);
     Node* nodeToInsert;
     while (!remainingNodes.empty()) {
         nodeToInsert = getFarthestNode(remainingNodes);
