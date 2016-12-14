@@ -157,15 +157,15 @@ void Tour::removeIntersections() {
 bool Tour::removeIntersectionsHelper() {
     Node* n1 = m_firstNode;
     Node* n2;
-    Node* tempNode;
+    Node* tempNodePtr;
     unsigned int tourSize = size();
     for (unsigned int i = 0; i < tourSize; i++) {
         n2 = (n1->next)->next;
         for (unsigned int j = 0; j < tourSize - 3; j++) {
             if (intersects(n1, n2)) {
-                tempNode = n2->next;
+                tempNodePtr = n2->next;
                 reverseNodes(n1->next, n2);
-                (n1->next)->next = tempNode;
+                (n1->next)->next = tempNodePtr;
                 n1->next = n2;
                 return true;
             }
@@ -180,26 +180,35 @@ bool Tour::isVertical(const Node* node) {
     return node->point.x == (node->next)->point.x;
 }
 
-bool Tour::isInRange(const Node* node, const double& xIntersection, const double& yIntersection) {
+bool Tour::isHorizontal(const Node* node) {
+    return node->point.y == (node->next)->point.y;
+}
+
+bool Tour::isInRange(const Node* node, const double& xIntersection,
+                     const double& yIntersection) {
     Point a1 = node->point;
     Point a2 = (node->next)->point;
     bool xIntersectionInRange;
     bool yIntersectionInRange;
-    if (a1.x == a2.x) {
-        xIntersectionInRange = xIntersection == a1.x;       //vertikalkollen?
-    } else if (a1.x > a2.x) {                                  //räcker det inte med en kordnatkontroll (Alltså x Eller y)
-        xIntersectionInRange = (xIntersection < a1.x) && (xIntersection > a2.x);
+    if (isVertical(node)) {
+        xIntersectionInRange = (xIntersection == a1.x);
+    } else if (a1.x > a2.x) {
+        xIntersectionInRange = (xIntersection <= a1.x) &&
+                (xIntersection >= a2.x);
     } else {
-        xIntersectionInRange = (xIntersection < a2.x) && (xIntersection > a1.x);
+        xIntersectionInRange = (xIntersection <= a2.x) &&
+                (xIntersection >= a1.x);
     }
-    if (a1.y == a2.y) {
-        yIntersectionInRange = a1.y == yIntersection;
+    if (isHorizontal(node)) {
+        yIntersectionInRange = (a1.y == yIntersection);
     } else if (a1.y > a2.y) {
-        yIntersectionInRange = (yIntersection < a1.y) && (yIntersection > a2.y);
+        yIntersectionInRange = (yIntersection <= a1.y) &&
+                (yIntersection >= a2.y);
     } else {
-        yIntersectionInRange = (yIntersection < a2.y) && (yIntersection > a1.y);
+        yIntersectionInRange = (yIntersection <= a2.y) &&
+                (yIntersection >= a1.y);
     }
-    return xIntersectionInRange && yIntersectionInRange;
+    return yIntersectionInRange && xIntersectionInRange;
 }
 
 bool Tour::intersects(const Node* n1, const Node* n2) {
@@ -209,24 +218,22 @@ bool Tour::intersects(const Node* n1, const Node* n2) {
     Point b2 = (n2->next)->point;
     double k1 = (a1.y-a2.y)/(a1.x-a2.x);
     double k2 = (b1.y-b2.y)/(b1.x-b2.x);
-    double m1 = a1.y - (k1*a1.x);
-    double m2 = b1.y - (k2*b1.x);
+    double m1 = a1.y-(k1*a1.x);
+    double m2 = b1.y-(k2*b1.x);
     double xIntersection;
     double yIntersection;
     if (k1 == k2) {
         return false;
-    } else if (isVertical(n1)) {            //Kanske bör ändra ändå...
+    } else if (isVertical(n1)) {
         xIntersection = a1.x;
-        yIntersection = k2*xIntersection + m2;  //göra till punkt?
     } else if (isVertical(n2)) {
         xIntersection = b1.x;
-        yIntersection = k1*xIntersection + m1;
     } else {
         xIntersection = (m2-m1)/(k1-k2);
-        yIntersection = k1*xIntersection + m1;
     }
+    yIntersection = k1 * xIntersection + m1;
     return isInRange(n1, xIntersection, yIntersection) &&
-            isInRange(n2, xIntersection, yIntersection);        //räcker med att kolla en?
+            isInRange(n2, xIntersection, yIntersection);
 }
 
 void Tour::reverseNodes(Node*& previousNode, Node*& lastNode) {

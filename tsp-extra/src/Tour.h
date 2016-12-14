@@ -79,6 +79,11 @@ private:
     bool isVertical(const Node* node);
 
     /*
+     * Returns true if line between node->point and (node->next)->point is horizontal.
+     */
+    bool isHorizontal(const Node* node);
+
+    /*
      * Returns true if the point (xIntersection, yIntersection) is on the line
      * between node->point and (node->next)->point.
      */
