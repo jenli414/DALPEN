@@ -18,7 +18,7 @@
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
-    string filename = "tsp10.txt";
+    string filename = "bier127.txt";
     ifstream input;
     input.open(filename);
 
@@ -40,20 +40,19 @@ int main(int argc, char *argv[]) {
     Tour tour;
     double x;
     double y;
-    int temp;
     vector<Node*> tourNodes;
     while (input >> x >> y) {
         Point p(x, y);
         //tour.insertNearest(p);
-        tour.insertPoint(p, tourNodes);
-        //cin >> temp;
+        tourNodes.push_back(new Node(p));
+        //tour.insertSmallest(p);
         //uncomment the 4 lines below to animate
         //tour.draw(scene);
         //std::chrono::milliseconds dura(50);
         //std::this_thread::sleep_for(dura);
         //a.processEvents();
     }
-    tour.makeFarthestStartNodes(tourNodes);
+    tour.farthestInsertion(tourNodes);
     input.close();
 
     // print tour to standard output
@@ -62,7 +61,6 @@ int main(int argc, char *argv[]) {
     cout << "Number of points: " << tour.size() << endl;
     tour.show();
 
-    // draw tour
     tour.draw(scene);
 
     return a.exec(); // start Qt event loop

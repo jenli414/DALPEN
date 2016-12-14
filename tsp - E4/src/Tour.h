@@ -60,6 +60,10 @@ public:
 
     void makeFarthestStartNodes(vector<Node*>& tourPoints);
 
+    void farthestInsertion(vector<Node*>& tourNodes);
+
+    Node* getFarthestNode(vector<Node*>& tourNodes);
+
 private:
     Node* m_firstNode = nullptr; // Pointer to the front node in the Tour
 };
