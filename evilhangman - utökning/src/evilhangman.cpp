@@ -46,7 +46,7 @@ int main() {
     readDictionary(dictionary);
     unsigned int shortestWord, longestWord = 0;
     getWordLengthLimits(dictionary, shortestWord, longestWord);
-    cout << "Welcome to EvilHangman." << endl << endl;
+    cout << "Welcome to Hangman." << endl << endl;
     char userAction = 's';
     bool run = true;
     while(run) {//adasd
@@ -273,6 +273,8 @@ void askForGuess(set<char>& alreadyGuessedLetters, char& guess) {
  * Sets remainingWords to the largest possible word family depending on
  * what letter the player has guessed.
  */
+// E2: Implements a new way of selecting word families. Chooses the family with
+// the most unique letter combinations in its words (per word).
 void findLargestWordFamily(set<string>& remainingWords, const int& uNumOfGuesses,
                            const char& guess, const int& wordLength) {
     string currentWord;
@@ -296,6 +298,8 @@ void findLargestWordFamily(set<string>& remainingWords, const int& uNumOfGuesses
         uniqueCharsMap[keyStream.str()].insert(uniqueChars);
         wordFamilies[keyStream.str()].insert(currentWord);
     }
+    // E1: If only one guess remains, checks if we can make the player
+    // lose by selecting the empty word family.
     string emptyFamily;
     emptyFamily.insert(0, wordLength, '-');
     if (uNumOfGuesses == 1 && wordFamilies.count(emptyFamily)) {

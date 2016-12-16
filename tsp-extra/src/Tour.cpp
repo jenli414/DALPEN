@@ -185,30 +185,26 @@ bool Tour::isHorizontal(const Node* node) const {
 }
 
 bool Tour::isInRange(const Node* node, const double& xIntersection,
-                     const double& yIntersection) const{
+                     const double& yIntersection) const {
     Point a1 = node->point;
     Point a2 = (node->next)->point;
     bool xIntersectionInRange;
     bool yIntersectionInRange;
-    if (isVertical(node)) {
-        xIntersectionInRange = (xIntersection == a1.x);
-    } else if (a1.x > a2.x) {
-        xIntersectionInRange = (xIntersection <= a1.x) &&
-                (xIntersection >= a2.x);
+    if (a1.x > a2.x) {
+        xIntersectionInRange = ((xIntersection <= a1.x) &&
+                (xIntersection >= a2.x));
     } else {
-        xIntersectionInRange = (xIntersection <= a2.x) &&
-                (xIntersection >= a1.x);
+        xIntersectionInRange = ((xIntersection <= a2.x) &&
+                (xIntersection >= a1.x));
     }
-    if (isHorizontal(node)) {
-        yIntersectionInRange = (a1.y == yIntersection);
-    } else if (a1.y > a2.y) {
-        yIntersectionInRange = (yIntersection <= a1.y) &&
-                (yIntersection >= a2.y);
+    if (a1.y > a2.y) {
+        yIntersectionInRange = ((yIntersection <= a1.y) &&
+                (yIntersection >= a2.y));
     } else {
-        yIntersectionInRange = (yIntersection <= a2.y) &&
-                (yIntersection >= a1.y);
+        yIntersectionInRange = ((yIntersection <= a2.y) &&
+                (yIntersection >= a1.y));
     }
-    return yIntersectionInRange && xIntersectionInRange;
+    return (xIntersectionInRange && yIntersectionInRange);
 }
 
 bool Tour::intersects(const Node* n1, const Node* n2) const {
@@ -226,12 +222,14 @@ bool Tour::intersects(const Node* n1, const Node* n2) const {
         return false;
     } else if (isVertical(n1)) {
         xIntersection = a1.x;
+        yIntersection = k2 * xIntersection + m2;
     } else if (isVertical(n2)) {
         xIntersection = b1.x;
+        yIntersection = k1 * xIntersection + m1;
     } else {
         xIntersection = (m2-m1)/(k1-k2);
+        yIntersection = k1 * xIntersection + m1;
     }
-    yIntersection = k1 * xIntersection + m1;
     return isInRange(n1, xIntersection, yIntersection) &&
             isInRange(n2, xIntersection, yIntersection);
 }

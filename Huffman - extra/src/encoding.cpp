@@ -1,7 +1,4 @@
-// This is the CPP file you will edit and turn in.
-// Also remove these comments here and add your own, along with
-// comments on every function and on complex code sections.
-// TODO: remove this comment header
+// jenli414 och sabse 455
 
 #include "encoding.h"
 #include <queue>
@@ -157,6 +154,7 @@ bool decodeDataHelper(ibitstream& input, const HuffmanNode* currNode, ostream& o
 // EOF and its frequency is no longer in the header.
 void compress(istream& input, obitstream& output) {
     map<int,int> freqTable = buildFrequencyTable(input);
+    HuffmanNode* encodingTree = buildEncodingTree(freqTable);
     freqTable.erase(PSEUDO_EOF);
     input.clear();
     input.seekg(0, ios::beg);
@@ -174,8 +172,6 @@ void compress(istream& input, obitstream& output) {
         }
     }
     output.put('}');
-    freqTable[PSEUDO_EOF] = 1;
-    HuffmanNode* encodingTree = buildEncodingTree(freqTable);
     encodeData(input, buildEncodingMap(encodingTree), output);
     freeTree(encodingTree);
 }

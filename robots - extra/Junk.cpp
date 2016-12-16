@@ -19,7 +19,7 @@ Junk::Junk(const Unit& c) : Robot(c) {
 
 }
 
-void Junk::moveTowards(const Unit& u) {
+void Junk::moveTowards(const Point& p) {
 
 }
 

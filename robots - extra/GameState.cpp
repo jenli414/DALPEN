@@ -91,7 +91,7 @@ void GameState::teleportHero() {
 
 void GameState::moveRobots() {
     for (unsigned int i = 0; i < robots.size(); i++) {
-        robots[i]->moveTowards(hero);
+        robots[i]->moveTowards(hero.asPoint());
     }
 }
 
@@ -146,8 +146,8 @@ bool GameState::isSafe(const Unit& unit) const {
 }
 
 
-void GameState::moveHeroTowards(const Unit& dir) {
-    hero.moveTowards(dir);
+void GameState::moveHeroTowards(const Point& p) {
+    hero.moveTowards(p);
 }
 
 

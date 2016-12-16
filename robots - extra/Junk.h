@@ -29,7 +29,7 @@ public:
     /*
      * Overrides Unit's moveTowards. Does nothing.
      */
-    void moveTowards(const Unit& u) override;
+    void moveTowards(const Point& p) override;
 
     /*
      * Overrides Unit's attacks. Does nothing.

@@ -8,6 +8,9 @@
 
 using namespace std;
 
+/*
+ * Recursive help-function for depthFirstSearch.
+ */
 void depthFirstSearchHelper(vector<Vertex*>& path, Vertex* start,
                                      Vertex* end, bool& foundEnd) {
     path.push_back(start);
@@ -33,6 +36,9 @@ void depthFirstSearchHelper(vector<Vertex*>& path, Vertex* start,
     }
 }
 
+/*
+ * Finds a path between start and end using depth-first search.
+ */
 vector<Node *> depthFirstSearch(BasicGraph& graph, Vertex* start, Vertex* end) {
     graph.resetData();
     bool foundEnd = false;
@@ -41,6 +47,9 @@ vector<Node *> depthFirstSearch(BasicGraph& graph, Vertex* start, Vertex* end) {
     return path;
 }
 
+/*
+ * Backtracks from end to start and returns resulting path.
+ */
 vector<Vertex*> getPath(Vertex* start, Vertex* end) {
     vector<Vertex*> path;
     bool foundEnd = end->previous != nullptr;
@@ -56,6 +65,9 @@ vector<Vertex*> getPath(Vertex* start, Vertex* end) {
     return path;
 }
 
+/*
+ * Finds a path between start and end using breadth-first search.
+ */
 vector<Node *> breadthFirstSearch(BasicGraph& graph, Vertex* start, Vertex* end) {
     graph.resetData();
     queue<Vertex*> vertexQueue;
@@ -86,6 +98,9 @@ vector<Node *> breadthFirstSearch(BasicGraph& graph, Vertex* start, Vertex* end)
     return getPath(start, end);
 }
 
+/*
+ * Finds the cheapest path between start and end using the dijikstra algorithm.
+ */
 vector<Node *> dijkstrasAlgorithm(BasicGraph& graph, Vertex* start, Vertex* end) {
     graph.resetData();
     PriorityQueue<Vertex*> vertexQueue;
@@ -127,6 +142,9 @@ vector<Node *> dijkstrasAlgorithm(BasicGraph& graph, Vertex* start, Vertex* end)
     return getPath(start, end);
 }
 
+/*
+ * Finds a path between start and end using a* search.
+ */
 vector<Node *> aStar(BasicGraph& graph, Vertex* start, Vertex* end) {
     graph.resetData();
     PriorityQueue<Vertex*> vertexQueue;

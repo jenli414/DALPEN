@@ -41,11 +41,11 @@ void Unit::teleport() {
     y = rand_int (MIN_Y, MAX_Y);
 }
 
-void Unit::moveTowards(const Unit& u) {
-    if (x > u.x) x--;
-    if (x < u.x) x++;
-    if (y > u.y) y--;
-    if (y < u.y) y++;
+void Unit::moveTowards(const Point& p) {
+    if (x > p.x) x--;
+    if (x < p.x) x++;
+    if (y > p.y) y--;
+    if (y < p.y) y++;
     checkBounds();
 }
 

@@ -43,6 +43,13 @@ protected:
      */
     virtual ~Unit();
 
+
+    int x;  // x position of this unit
+    int y;  // y position of this unit
+
+    // protected helpers
+    void checkBounds();
+
 public:
 
     /*
@@ -63,7 +70,7 @@ public:
     /*
      * Take one step closer to u.
      */
-    virtual void moveTowards(const Unit& u);
+    virtual void moveTowards(const Point& p);
 
     /*
      * Returns x coordinate of this unit.
@@ -79,12 +86,6 @@ public:
         return y;
     }
 
-private:
-    int x;  // x position of this unit
-    int y;  // y position of this unit
-
-    // private helpers
-    void checkBounds();
 };
 
 #endif // UNIT_H

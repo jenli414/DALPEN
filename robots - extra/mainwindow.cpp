@@ -140,11 +140,10 @@ bool MainWindow::tryMove(Hero hero, const Point& point) {
      * This no longer works with Unit as an abstract class, so we chose
      * to create a Hero using Hero(point) and pass that instead of point.
      */
-    Hero pointAsHero(point);
     if (!outsideBorder(point)) {
-        hero.moveTowards(pointAsHero);
+        hero.moveTowards(point);
         if (gameState.isSafe(hero)) {
-            gameState.moveHeroTowards(pointAsHero);
+            gameState.moveHeroTowards(point);
             return true;
         }
     }

@@ -28,8 +28,8 @@ bool Robot::isJunk() const {
 }
 
 bool Robot::attacks(const Unit& u) const {
-    return (abs(getX() - u.getX()) <= 1 &&
-            abs(getY() - u.getY()) <= 1);
+    return (abs(x - u.getX()) <= 1 &&
+            abs(y - u.getY()) <= 1);
 }
 
 void Robot::draw(QGraphicsScene *scene) const {
